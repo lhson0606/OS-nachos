@@ -6,6 +6,7 @@
         "*.tcc": "c",
         "functional": "c",
         "system_error": "c",
-        "unistd.h": "c"
+        "unistd.h": "c",
+        "copyright.h": "c"
     }
 }

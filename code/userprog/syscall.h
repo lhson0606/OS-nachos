@@ -18,24 +18,28 @@
 /* system call codes -- used by the stubs to tell the kernel which system call
  * is being asked for
  */
-#define SC_Halt		0
-#define SC_Exit		1
-#define SC_Exec		2
-#define SC_Join		3
-#define SC_Create	4
+#define SC_Halt		    0
+#define SC_Exit		    1
+#define SC_Exec		    2
+#define SC_Join		    3
+#define SC_Create	    4
 #define SC_Remove       5
-#define SC_Open		6
-#define SC_Read		7
-#define SC_Write	8
+#define SC_Open		    6
+#define SC_Read		    7
+#define SC_Write	    8
 #define SC_Seek         9
-#define SC_Close	10
+#define SC_Close        10
 #define SC_ThreadFork	11
 #define SC_ThreadYield	12
-#define SC_ExecV	13
+#define SC_ExecV	    13
 #define SC_ThreadExit   14
 #define SC_ThreadJoin   15
 
-#define SC_Add		42
+//Arithmetic operations
+#define SC_Add		    42
+
+//Console operations
+#define SC_PrintStrn	50
 
 #ifndef IN_ASM
 
@@ -105,13 +109,18 @@ typedef int OpenFileId;
  * the console device.
  */
 
-#define ConsoleInput	0  
-#define ConsoleOutput	1  
+//#define ConsoleInput 0  :))
+//#define ConsoleOutput 1 :)) 
  
 /* Create a Nachos file, with name "name" */
 /* Note: Create does not open the file.   */
 /* Return 1 on success, negative error code on failure */
-int Create(char *name);
+int Create(char *name, int size);
+
+/*
+ * Prints a string to the console.
+ */
+int PrintStrn(char* strn);
 
 /* Remove a Nachos file, with name "name" */
 int Remove(char *name);
@@ -172,7 +181,7 @@ int ThreadJoin(ThreadId id);
 /*
  * Deletes current thread and returns ExitCode to every waiting lokal thread.
  */
-void ThreadExit(int ExitCode);	
+void ThreadExit(int ExitCode);
 
 #endif /* IN_ASM */
 

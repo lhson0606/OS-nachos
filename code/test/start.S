@@ -98,6 +98,14 @@ Create:
 	j	$31
 	.end Create
 
+	.globl PrintStrn
+	.ent	PrintStrn
+PrintStrn:
+	addiu $2,$0, SC_PrintStrn
+	syscall
+	j	$31
+	.end PrintStrn
+
 	.globl Remove
 	.ent	Remove
 Remove:
@@ -177,7 +185,7 @@ ThreadJoin:
 	syscall
 	j 	$31
 	.end ThreadJoin
-	
+
 /* dummy function to keep gcc happy */
         .globl  __main
         .ent    __main

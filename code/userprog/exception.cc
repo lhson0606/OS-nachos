@@ -57,6 +57,8 @@
 */
 
 // Start of constants =================================================
+const int MAX_INT = 128;
+const int STRING_MAX_LEN = MAX_INT;
 const int FILE_NAME_MAX_LEN = 32;
 // End of constants ===================================================
 
@@ -87,6 +89,7 @@ int System2User(int virtAddr, int len, char* buffer);
 void ExceptionHandler(ExceptionType which)
 {
 	int type = kernel->machine->ReadRegister(2);
+	int virtAddr;
 
 	DEBUG(dbgSys, "Received Exception " << which << " type: " << type << "\n");
 
@@ -101,15 +104,14 @@ void ExceptionHandler(ExceptionType which)
 				SysHalt();
 
 				ASSERTNOTREACHED();
-			break;
-			
-		
+			break;		
 
 			case SC_Create:
 				DEBUG(dbgSys, "[SC] SC_Create.\n");
-				int virtAddr;
 				char* filename;
 				int file_creation_result;
+				file_creation_result = -1;
+
 				DEBUG(dbgSys, "\tReading virtual address of filename.\n");
 				virtAddr = kernel->machine->ReadRegister(4);
 				filename = User2System(virtAddr, FILE_NAME_MAX_LEN);
@@ -128,10 +130,19 @@ void ExceptionHandler(ExceptionType which)
 
 				delete[] filename;
 				//we don't need to increase PC here because we didn't modify anything
+				{
+					/* set previous programm counter (debugging only)*/
+					kernel->machine->WriteRegister(PrevPCReg, kernel->machine->ReadRegister(PCReg));
+
+					/* set programm counter to next instruction (all Instructions are 4 byte wide)*/
+					kernel->machine->WriteRegister(PCReg, kernel->machine->ReadRegister(PCReg) + 4);
+
+					/* set next programm counter for brach execution */
+					kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg) + 4);
+				}
 				return;
 				ASSERTNOTREACHED();
-			break;
-		
+			break;		
 
 			case SC_Add:
 				DEBUG(dbgSys, "Add " << kernel->machine->ReadRegister(4) << " + " << kernel->machine->ReadRegister(5) << "\n");
@@ -162,7 +173,49 @@ void ExceptionHandler(ExceptionType which)
 				ASSERTNOTREACHED();
 
 			break;
-		
+
+			case SC_PrintStrn:
+				DEBUG(dbgSys, "[SC] SC_PrintStrn.\n");
+				char* strn;
+
+				virtAddr = kernel->machine->ReadRegister(4);
+				strn = User2System(virtAddr, STRING_MAX_LEN);
+
+				//extra check
+				if(!strn){
+					DEBUG(dbgSys, "\tFatal: System memory drained\n");
+					kernel->machine->WriteRegister(2, -1);
+					return;
+				}
+
+				int count;
+				count = 0;
+
+				while(strn[count] != '\0' && count<STRING_MAX_LEN){
+					//SysPrintChar(strn[count]);
+					count++;
+				}
+				
+				DEBUG(dbgSys, "\tString: " << strn << "\n");
+				DEBUG(dbgSys, "\tPrinted: " << count << " character(s)\n");
+				kernel->machine->WriteRegister(2, count);
+				delete[] strn;
+				strn = NULL;
+				//we don't need to increase PC here because we didn't modify anything
+				/* Modify return point */
+				{
+					/* set previous programm counter (debugging only)*/
+					kernel->machine->WriteRegister(PrevPCReg, kernel->machine->ReadRegister(PCReg));
+
+					/* set programm counter to next instruction (all Instructions are 4 byte wide)*/
+					kernel->machine->WriteRegister(PCReg, kernel->machine->ReadRegister(PCReg) + 4);
+
+					/* set next programm counter for brach execution */
+					kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg) + 4);
+				}
+				return;
+				ASSERTNOTREACHED();
+			break;
 
 			default:
 				cerr << "Unexpected system call " << type << "\n";
@@ -193,6 +246,7 @@ char* User2System(int virtAddr, int limit)
 	if (kernelBuf == NULL)
 		return kernelBuf;
 	memset(kernelBuf, 0, limit + 1);
+	kernelBuf[limit] = '\0';//just to make sure
 	//printf("\n Filename u2s:");
 	for (i = 0; i < limit; i++)
 	{
