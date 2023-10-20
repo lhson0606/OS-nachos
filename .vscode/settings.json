@@ -7,6 +7,8 @@
         "functional": "c",
         "system_error": "c",
         "unistd.h": "c",
-        "copyright.h": "c"
+        "copyright.h": "c",
+        "iostream": "cpp",
+        "new": "cpp"
     }
 }
