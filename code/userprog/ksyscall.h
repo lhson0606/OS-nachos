@@ -21,13 +21,23 @@ void SysHalt()
   kernel->interrupt->Halt();
 }
 
+int SysCreate(char* filename)
+{
+  int res;
+
+  if(kernel->fileSystem->Create(filename)){
+    res = 0;
+  } else{
+    res = -1;
+  }
+
+  return res;
+}
 
 int SysAdd(int op1, int op2)
 {
   return op1 + op2;
 }
-
-
 
 
 

@@ -95,77 +95,82 @@ void ExceptionHandler(ExceptionType which)
 	case SyscallException:
 		switch (type)
 		{
-		case SC_Halt:
-			DEBUG(dbgSys, "Shutdown, initiated by user program.\n");
+			case SC_Halt:
+				DEBUG(dbgSys, "Shutdown, initiated by user program.\n");
 
-			SysHalt();
+				SysHalt();
 
-			ASSERTNOTREACHED();
+				ASSERTNOTREACHED();
 			break;
+			
+		
 
-		case SC_Create:
-			DEBUG(dbgSys, "[SC] SC_Create.\n");
-			int virtAddr;
-			char* filename;
-			DEBUG(dbgSys, "\tReading virtual address of filename.\n");
-			virtAddr = kernel->machine->ReadRegister(4);
-			filename = User2System(virtAddr, FILE_NAME_MAX_LEN);
+			case SC_Create:
+				DEBUG(dbgSys, "[SC] SC_Create.\n");
+				int virtAddr;
+				char* filename;
+				int file_creation_result;
+				DEBUG(dbgSys, "\tReading virtual address of filename.\n");
+				virtAddr = kernel->machine->ReadRegister(4);
+				filename = User2System(virtAddr, FILE_NAME_MAX_LEN);
 
-			//extra check
-			if(!filename){
-				DEBUG(dbgSys, "\tFatal: System memory drained\n");
-				kernel->machine->WriteRegister(2, -1);
+				//extra check
+				if(!filename){
+					DEBUG(dbgSys, "\tFatal: System memory drained\n");
+					kernel->machine->WriteRegister(2, -1);
+					return;
+				}
+
+				DEBUG(dbgSys, "\tFile name: " <<filename << "\n");
+				file_creation_result = SysCreate(filename);
+				DEBUG(dbgSys, "\tFile creation result: " << file_creation_result << "\n");
+				kernel->machine->WriteRegister(2, file_creation_result);
+
+				delete[] filename;
+				//we don't need to increase PC here because we didn't modify anything
 				return;
-			}
-
-			DEBUG(dbgSys, "\tFile name: " <<filename << "\n");
-			int file_creation_result = SysCreate(filename);
-			DEBUG(dbgSys, "\tFile creation result: " << file_creation_result << "\n");
-			DEBUG(dbgSys, std::to_string(file_creation_result) << "\n");
-			kernel->machine->WriteRegister(2, file_creation_result);
-
-
-			delete[] filename;
-			return;
-			ASSERTNOTREACHED();
+				ASSERTNOTREACHED();
 			break;
-		break;
+		
 
-		case SC_Add:
-			DEBUG(dbgSys, "Add " << kernel->machine->ReadRegister(4) << " + " << kernel->machine->ReadRegister(5) << "\n");
+			case SC_Add:
+				DEBUG(dbgSys, "Add " << kernel->machine->ReadRegister(4) << " + " << kernel->machine->ReadRegister(5) << "\n");
 
-			/* Process SysAdd Systemcall*/
-			int result;
-			result = SysAdd(/* int op1 */ (int)kernel->machine->ReadRegister(4),
-							/* int op2 */ (int)kernel->machine->ReadRegister(5));
+				/* Process SysAdd Systemcall*/
+				int result;
+				result = SysAdd(/* int op1 */ (int)kernel->machine->ReadRegister(4),
+								/* int op2 */ (int)kernel->machine->ReadRegister(5));
 
-			DEBUG(dbgSys, "Add returning with " << result << "\n");
-			/* Prepare Result */
-			kernel->machine->WriteRegister(2, (int)result);
+				DEBUG(dbgSys, "Add returning with " << result << "\n");
+				/* Prepare Result */
+				kernel->machine->WriteRegister(2, (int)result);
 
-			/* Modify return point */
-			{
-				/* set previous programm counter (debugging only)*/
-				kernel->machine->WriteRegister(PrevPCReg, kernel->machine->ReadRegister(PCReg));
+				/* Modify return point */
+				{
+					/* set previous programm counter (debugging only)*/
+					kernel->machine->WriteRegister(PrevPCReg, kernel->machine->ReadRegister(PCReg));
 
-				/* set programm counter to next instruction (all Instructions are 4 byte wide)*/
-				kernel->machine->WriteRegister(PCReg, kernel->machine->ReadRegister(PCReg) + 4);
+					/* set programm counter to next instruction (all Instructions are 4 byte wide)*/
+					kernel->machine->WriteRegister(PCReg, kernel->machine->ReadRegister(PCReg) + 4);
 
-				/* set next programm counter for brach execution */
-				kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg) + 4);
-			}
+					/* set next programm counter for brach execution */
+					kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg) + 4);
+				}
 
-			return;
+				return;
 
-			ASSERTNOTREACHED();
+				ASSERTNOTREACHED();
 
 			break;
+		
 
-		default:
-			cerr << "Unexpected system call " << type << "\n";
+			default:
+				cerr << "Unexpected system call " << type << "\n";
 			break;
 		}
-		break;
+		
+	break;
+
 	default:
 		cerr << "Unexpected user mode exception" << (int)which << "\n";
 		break;

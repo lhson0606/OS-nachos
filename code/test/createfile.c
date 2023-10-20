@@ -1,3 +1,16 @@
 #include "syscall.h"
 #include "copyright.h"
-#include "system.h"
+#define MaxFileLength 32
+
+int main(){
+    int len;
+    char filename[MaxFileLength+1];
+
+    if(Create("file1") == -1){
+        
+    }else{
+        
+    }
+
+    Halt();
+}
