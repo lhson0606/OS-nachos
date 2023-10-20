@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "*.S": "mips",
+        "fstream": "cpp",
+        "syscall.h": "c",
+        "*.tcc": "c",
+        "functional": "c",
+        "system_error": "c",
+        "unistd.h": "c"
+    }
+}
