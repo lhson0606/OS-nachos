@@ -84,4 +84,53 @@ int SysClose(OpenFileID id)
   return fdt.Close(id);
 }
 
+int consoleRead(char *buffer, int size)
+{
+  DEBUG(dbgFile, "\n\tReading from console with size " << size);
+  int i = 0;
+  char c;
+  while (i < size)
+  {
+    c = kernel->synchConsoleIn->GetChar();
+
+    if (c == EOF)
+    {
+      break;
+    }
+
+    DEBUG(dbgFile, "\n\t" << i);
+    buffer[i] = c;
+    ++i;
+  }
+
+  DEBUG(dbgFile, "\n\tRead " << i << " characters from console");
+  DEBUG(dbgFile, "\n\tValue: " << buffer);
+  return i;
+}
+
+int SysRead(char *buffer, int size, OpenFileID fd)
+{
+  //check if fd is STDIN
+  if(fd == STDIN){
+    return consoleRead(buffer, size);
+  }
+
+  int res;
+  OpenFile *file = fdt.getFile(fd);
+
+  //check for valid
+  if (file == NULL)
+  {
+    res = -1;
+  }
+  else
+  {
+    res = file->Read(buffer, size);
+  }
+
+  DEBUG(dbgFile, "\n\tRead " << res << " characters from fd " << fd);
+  DEBUG(dbgFile, "\n\tValue: " << buffer);
+  return res;
+}
+
 #endif /* ! __USERPROG_KSYSCALL_H__ */

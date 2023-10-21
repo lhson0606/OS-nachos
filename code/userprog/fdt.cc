@@ -3,8 +3,10 @@
 
 FileDescriptorTable::FileDescriptorTable()
 {
-    fdt = new OpenFile *[MAX_FILE_DESCRIPTOR]
-    { NULL };
+    fdt = new OpenFile *[MAX_FILE_DESCRIPTOR]{ NULL };
+    modes = new OpenMode[MAX_FILE_DESCRIPTOR]{ NO_MODE };
+    modes[STDIN] = RW;
+    modes[STDOUT] = RW;
 }
 
 OpenFileID FileDescriptorTable::Open(FileName filename, OpenMode mode)
@@ -30,6 +32,7 @@ OpenFileID FileDescriptorTable::Open(FileName filename, OpenMode mode)
         {
             DEBUG(dbgFile, "\n\tFile opened with id " << id);
             fdt[id] = file;
+            modes[id] = mode;
             return id;
         }
     }
@@ -57,6 +60,7 @@ int FileDescriptorTable::Close(OpenFileID id)
             file->~OpenFile();
             DEBUG(dbgFile, "\n\tFile descriptor " << id << " closed");
             fdt[id] = NULL;
+            modes[id] = NO_MODE;
             return 0;
         }
     }
@@ -92,7 +96,7 @@ int FileDescriptorTable::countFileDescriptor()
     return count;
 }
 
-OpenFile *FileDescriptorTable::getFile(OpenFileID fd)
+OpenFile* FileDescriptorTable::getFile(OpenFileID fd)
 {
     if (fd < 0 || fd >= MAX_FILE_DESCRIPTOR || fd == 0 || fd == 1)
     {
@@ -103,7 +107,12 @@ OpenFile *FileDescriptorTable::getFile(OpenFileID fd)
     return file;
 }
 
+bool FileDescriptorTable::isReadOnly(OpenFileID fd){
+    return modes[fd] == RO;
+}
+
 FileDescriptorTable::~FileDescriptorTable()
 {
     delete[] fdt;
+    delete[] modes;
 }

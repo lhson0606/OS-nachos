@@ -1,34 +1,43 @@
 #include "syscall.h"
 #include "copyright.h"
 #define MaxFileLength 32
+#define MaxStrnLength 255
 
 int main(){
     int len;
-    char filename[] = "file1";
+    char buffer[MaxStrnLength];
     int fileID;
 
-    if(Create(filename, 0) == 0){    
-        PrintStrn("File created\n");           
-    }else{
-        PrintStrn("Can't create file1\n");
-        Halt();
-    }
+    int read_count = Read(buffer, 94, 0);
+    PrintStrn(buffer);
+    // if(Create(filename, 0) == 0){    
+    //     PrintStrn("File created\n");           
+    // }else{
+    //     PrintStrn("Can't create file1\n");
+    //     Halt();
+    // }
 
-    fileID = Open(filename, 0);
+    // fileID = Open(filename, 0);
     
-    if(fileID != -1){
-        PrintStrn("File opened\n");
-    }else{
-        PrintStrn("Can't open file1\n");
-        Halt();
-    }
+    // if(fileID != -1){
+    //     PrintStrn("File opened\n");
+    // }else{
+    //     PrintStrn("Can't open file1\n");
+    //     Halt();
+    // }
 
-    if(Close(fileID) == 0){
-        PrintStrn("File1 closed\n");
-    }else{
-        PrintStrn("Can't close file1\n");
-        Halt();
-    }
+    // if(Close(fileID) == 0){
+    //     PrintStrn("File1 closed\n");
+    // }else{
+    //     PrintStrn("Can't close file1\n");
+    //     Halt();
+    // }
+    // PrintStrn("Reading from console: ");
+    // char* buffer = 0;
+    // buffer = malloc(MaxStrnLength);
+    // memset(buffer, 0, MaxStrnLength);
+    // int read_count = Read(MaxStrnLength, 3, 0);
+    // PrintStrn(buffer);
 
     Halt();
 }

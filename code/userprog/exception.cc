@@ -93,6 +93,7 @@ void increasePC();
 void ExceptionHandler(ExceptionType which)
 {
 	int type = kernel->machine->ReadRegister(2);
+	//user space address
 	int virtAddr;
 
 	DEBUG(dbgSys, "Received Exception " << which << " type: " << type << "\n");
@@ -194,18 +195,18 @@ void ExceptionHandler(ExceptionType which)
 			{
 				DEBUG(dbgSys, "[SC] SC_Close.\n");
 				int close_result;
-				OpenFileID fileID;
+				OpenFileID fd;
 				close_result = -1;
 
-				fileID = kernel->machine->ReadRegister(4);
-				DEBUG(dbgSys, "\tFile input ID: "<<fileID<<"\n");
+				fd = kernel->machine->ReadRegister(4);
+				DEBUG(dbgSys, "\tFile input FD: "<<fd<<"\n");
 
-				close_result = SysClose(fileID);
+				close_result = SysClose(fd);
 				
 				if(close_result!=-1){
 					DEBUG(dbgSys, "\tFile ID closed successfully - ID: " << close_result << "\n");
 				}else{
-					DEBUG(dbgSys, "\tFile closed failed - ID: " << fileID << "\n");
+					DEBUG(dbgSys, "\tFile closed failed - ID: " << fd << "\n");
 				}				
 				
 				kernel->machine->WriteRegister(2, close_result);
@@ -215,6 +216,42 @@ void ExceptionHandler(ExceptionType which)
 				ASSERTNOTREACHED();
 				break;
 			}	
+
+			case SC_Read:
+			{
+				DEBUG(dbgSys, "[SC] SC_Read.\n");
+			    OpenFileID fd;
+				int size;
+				char* sys_buffer = new char[size + 1];
+				memset(sys_buffer, '\0', size + 1);
+
+				virtAddr = kernel->machine->ReadRegister(4);
+				size = kernel->machine->ReadRegister(5);
+				fd = kernel->machine->ReadRegister(6);
+
+				int read_count = -1;
+				read_count = SysRead(sys_buffer, size, fd);
+				//convert kernel address to user address
+				int write_count = 0;
+				write_count = System2User(virtAddr, size, sys_buffer);
+				
+				DEBUG(dbgSys, "\tRead count: " << read_count << "\n");
+				DEBUG(dbgSys, "\tWrite to user count: " << write_count << "\n");
+				DEBUG(dbgSys, "\tBuffer value: " << sys_buffer << "\n");
+				
+				kernel->machine->WriteRegister(2, read_count);
+
+				increasePC();
+				delete[] sys_buffer;
+				return;
+				ASSERTNOTREACHED();
+				break;
+			}
+
+			case SC_Write:
+			{
+
+			}
 
 			case SC_Add:
 			{

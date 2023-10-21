@@ -7,6 +7,9 @@ typedef int OpenFileID;
 typedef char *FileName;
 // End of our own definitions
 const int MAX_FILE_DESCRIPTOR = 20;
+const OpenMode NO_MODE = -1;
+const OpenFileID STDIN = 0;
+const OpenFileID STDOUT = 1;
 const OpenMode RO = 0;
 const OpenMode RW = 1;
 #include "openfile.h"
@@ -45,10 +48,27 @@ public:
      */
     OpenFile *getFile(OpenFileID fd);
 
+    /**
+     * @brief      Check if the file descriptor is read only.
+     * @param[in]  fd    The file descriptor
+     * @return     True if read only, False otherwise.
+    */
+    bool isReadOnly(OpenFileID fd);
+
     ~FileDescriptorTable();
 
 private:
+    //store the file descriptors
     OpenFile **fdt;
+
+    /**
+     * store the number of file descriptors
+     * NO_MODE = -1 means that the table is not initialized
+     * RO = 0       means can read only
+     * RW = 1       means can read and write
+     */
+    OpenMode *modes;  
+
     /**
      * @brief      Gets the free file descriptors.
      * @return     The free file descriptor on success, -1 on fail (is full).
