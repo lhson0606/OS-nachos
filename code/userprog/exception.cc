@@ -55,7 +55,11 @@
 |executing syscall instructions                                        |
 +======================================================================+
 */
-
+// Start of constants =================================================
+const int MAX_INT = 2147483647;
+const int STRING_MAX_LEN = MAX_INT;
+const int FILE_NAME_MAX_LEN = 32;
+// End of constants ====================================================
 /**
  * @brief      Converts a virtual address to system address.
  * @param[in]  virtAddr  The virtual address

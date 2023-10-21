@@ -15,77 +15,9 @@
 #include "kernel.h"
 #include "synchconsole.h"
 #include "hash.h"
+#include "fdt.h"
 
-// Our own definitions
-typedef int OpenMode;
-typedef int OpenFileID;
-typedef char *FileName;
-// End of our own definitions
-
-// Start of constants =================================================
-const int MAX_INT = 2147483647;
-const int STRING_MAX_LEN = MAX_INT;
-const int FILE_NAME_MAX_LEN = 32;
-const int MAX_FILE_DESCRIPTOR = 20;
-const OpenMode RO = 0;
-const OpenMode RW = 1;
-// file descriptor table
-
-static OpenFile *fdt[MAX_FILE_DESCRIPTOR]{NULL};
-// End of constants ====================================================
-/**
- * @brief      Gets the free file descriptors.
- * @return     The free file descriptor on success, -1 on fail (is full).
- */
-OpenFileID getFreeFileDescriptor()
-{
-  OpenFileID fd;
-  fd = -1;
-  // we start from 2 because 0 and 1 are reserved for stdin and stdout
-  for (int i = 2; i < MAX_FILE_DESCRIPTOR; i++)
-  {
-    if (!fdt[i])
-    {
-      fd = i;
-      break;
-    }
-  }
-  return fd;
-}
-
-/**
- * @brief      Counts the file descriptors.
- * @return     The number of file descriptor (>=2) reserved for stdin, stdout.
- */
-int countFileDescriptor()
-{
-  int count;
-  count = 0;
-  for (int i = 2; i < MAX_FILE_DESCRIPTOR; i++)
-  {
-    if (fdt[i])
-    {
-      count++;
-    }
-  }
-  return count;
-}
-
-/**
- * @brief      Gets the file.
- * @param[in]  fd    The file descriptor
- * @return     The file on success, NULL on fail.
- */
-OpenFile *getFile(OpenFileID fd)
-{
-  if (fd < 0 || fd >= MAX_FILE_DESCRIPTOR || fd == 0 || fd == 1)
-  {
-    DEBUG(dbgFile, "\n\tInvalid file descriptor " << fd);
-    return NULL;
-  }
-  OpenFile *file = fdt[fd];
-  return file;
-}
+static FileDescriptorTable fdt;
 
 /**
  * Systemcall interface
@@ -139,30 +71,7 @@ void SysPrintChar(char c)
  */
 OpenFileID SysOpen(FileName filename, OpenMode mode)
 {
-  DEBUG(dbgFile, "\n\tOpening file " << filename << " with mode " << mode);
-  OpenFile *file = kernel->fileSystem->Open(filename);
-
-  if (!file)
-  {
-    DEBUG(dbgFile, "\n\tFile not found or file currently cannot be opened " << filename);
-    return -1;
-  }
-  else
-  {
-    OpenFileID id = getFreeFileDescriptor();
-
-    if (id == -1)
-    {
-      DEBUG(dbgFile, "\n\tNo free file descriptors");
-      return -1;
-    }
-    else
-    {
-      DEBUG(dbgFile, "\n\tFile opened with id " << id);
-      fdt[id] = file;
-      return id;
-    }
-  }
+  return fdt.Open(filename, mode);
 }
 
 /*
@@ -172,29 +81,7 @@ OpenFileID SysOpen(FileName filename, OpenMode mode)
  */
 int SysClose(OpenFileID id)
 {
-  DEBUG(dbgFile, "\n\tClosing file descriptor " << id)
-  if (id < 2 || id >= MAX_FILE_DESCRIPTOR)
-  {
-    DEBUG(dbgFile, "\n\tInvalid file descriptor " << id);
-    return -1;
-  }
-  else
-  {
-    OpenFile *file;
-    file = getFile(id);
-    if (file == NULL)
-    {
-      DEBUG(dbgFile, "\n\tFile descriptor " << id << " is not open");
-      return -1;
-    }
-    else
-    {
-      file->~OpenFile();
-      DEBUG(dbgFile, "\n\tFile descriptor " << id << " closed");
-      fdt[id] = NULL;
-      return 0;
-    }
-  }
+  return fdt.Close(id);
 }
 
 #endif /* ! __USERPROG_KSYSCALL_H__ */
