@@ -250,7 +250,42 @@ void ExceptionHandler(ExceptionType which)
 
 			case SC_Write:
 			{
+				DEBUG(dbgSys, "[SC] SC_Write.\n");
+				//file descriptor
+			    OpenFileID fd;
+				//size of buffer
+				int size;
+				//buffer to write
+				char* sys_buffer = NULL;
+				
+				//acquire user data
+				virtAddr = kernel->machine->ReadRegister(4);
+				size = kernel->machine->ReadRegister(5);
+				fd = kernel->machine->ReadRegister(6);
 
+				//process
+				sys_buffer = User2System(virtAddr, size);
+				//extra check
+				if(!sys_buffer){
+					DEBUG(dbgSys, "\tFatal: System memory drained\n");
+					kernel->machine->WriteRegister(2, -1);
+					return;
+				}
+
+				int write_count = -1;
+				write_count = SysWrite(sys_buffer, size, fd);
+				
+				DEBUG(dbgSys, "\tSize: " << size << "\n");
+				DEBUG(dbgSys, "\tActual wirtten size: " << write_count << "\n");
+				DEBUG(dbgSys, "\tBuffer value: " << sys_buffer << "\n");
+				
+				kernel->machine->WriteRegister(2, write_count);
+
+				increasePC();
+				delete[] sys_buffer;
+				return;
+				ASSERTNOTREACHED();
+				break;
 			}
 
 			case SC_Add:
