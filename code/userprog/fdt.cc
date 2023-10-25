@@ -33,6 +33,11 @@ OpenFileID FileDescriptorTable::Open(FileName filename, OpenMode mode)
             DEBUG(dbgFile, "\n\tFile opened with id " << id);
             fdt[id] = file;
             modes[id] = mode;
+            int len = -1;
+            len = strlen(filename);
+            names[id] = new char[len+1];
+            strcpy(names[id], filename);
+            names[id][len] = '\0';
             return id;
         }
     }
@@ -61,6 +66,8 @@ int FileDescriptorTable::Close(OpenFileID id)
             DEBUG(dbgFile, "\n\tFile descriptor " << id << " closed");
             fdt[id] = NULL;
             modes[id] = NO_MODE;
+            delete[] names[id];
+            names[id] = NULL;
             return 0;
         }
     }
@@ -115,4 +122,27 @@ FileDescriptorTable::~FileDescriptorTable()
 {
     delete[] fdt;
     delete[] modes;
+
+    for(int i = 0; i<MAX_FILE_DESCRIPTOR; i++){
+        //resume that if file is closed then names[i] is NULL
+        delete[] names[i];
+    }
+}
+
+bool FileDescriptorTable::isOpen(OpenFileID fd){
+    return fdt[fd] != NULL;
+}
+
+bool FileDescriptorTable::isOpen(FileName name){
+    for(int i = 0; i<MAX_FILE_DESCRIPTOR; i++){
+        if(isOpen(i) && strcmp(names[i], name) == 0)
+            return true;
+    }
+
+    return false;
+}
+
+FileName FileDescriptorTable::getName(OpenFileID fd)
+{
+    return names[fd];
 }

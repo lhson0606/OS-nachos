@@ -14,6 +14,7 @@ const OpenMode RO = 0;
 const OpenMode RW = 1;
 #include "openfile.h"
 #include "debug.h"
+#include "hash.h"
 
 class FileDescriptorTable
 {
@@ -55,6 +56,27 @@ public:
     */
     bool isReadOnly(OpenFileID fd);
 
+    /**
+     * @brief      Check whether the file descriptor is open.
+     * @param[in]  fd    The file descriptor
+     * @return     True if open, False otherwise.
+    */
+    bool isOpen(OpenFileID fd);
+
+    /**
+     * @brief      Check whether the file is open.
+     * @param[in]  name  The name of the file
+     * @return     True if open, False otherwise.
+    */
+    bool isOpen(FileName name);
+
+    /**
+     * @brief      Gets the name of the file.
+     * @param[in]  fd    The file descriptor
+     * @return     The name of the file on success, NULL on fail.
+    */
+    FileName getName(OpenFileID fd);
+
     ~FileDescriptorTable();
 
 private:
@@ -67,7 +89,13 @@ private:
      * RO = 0       means can read only
      * RW = 1       means can read and write
      */
-    OpenMode *modes;  
+    OpenMode *modes;
+
+    /**
+     * store the name of the file
+     * is NULL if the file descriptor is not used
+     */
+    FileName names[MAX_FILE_DESCRIPTOR];
 
     /**
      * @brief      Gets the free file descriptors.

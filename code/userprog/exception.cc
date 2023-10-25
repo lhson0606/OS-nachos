@@ -320,6 +320,29 @@ void ExceptionHandler(ExceptionType which)
 				break;
 			}
 
+			case SC_Remove:
+			{
+				DEBUG(dbgSys, "[SC] SC_Remove.\n");
+
+				virtAddr = kernel->machine->ReadRegister(4);
+
+				char* filename = NULL;
+				filename = User2System(virtAddr, FILE_NAME_MAX_LEN);
+
+				DEBUG(dbgSys, "\tFilename: "<<filename<<"\n");
+				int res = -1;
+				res = SysRemove(filename);
+
+				DEBUG(dbgSys, "\tRemove result: " << res << "\n");
+				
+				kernel->machine->WriteRegister(2, res);
+
+				increasePC();
+				return;
+				ASSERTNOTREACHED();
+				break;
+			}
+
 			case SC_Add:
 			{
 				DEBUG(dbgSys, "Add " << kernel->machine->ReadRegister(4) << " + " << kernel->machine->ReadRegister(5) << "\n");

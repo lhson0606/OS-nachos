@@ -208,13 +208,13 @@ void exitWithError(char* msg){
   kernel->interrupt->Halt();
 }
 
-// int performSeek(int pos, OpenFile* file){
-//   char* buffer = new char[pos+1];
-//   int result = file->Read(buffer, pos);
-//   delete[] buffer;
-//   return result;
-// }
 
+/**
+ * Seek to a specified position in a file
+ * @param pos The position to seek to
+ * @param fd The file descriptor of the file to seek in
+ * @return The new position in the file, -1 if an error occured
+*/
 int SysSeek(int pos, OpenFileID fd){
   int res = pos;
   OpenFile *file = fdt.getFile(fd);
@@ -235,6 +235,33 @@ int SysSeek(int pos, OpenFileID fd){
   res = pos;
 
   DEBUG(dbgFile, "\n\tSeeked to position " << pos << " in fd " << fd);
+  return res;
+}
+
+/**
+ * Remove a file give a given name
+ * @param filename The name of the file to remove
+ * @return 0 on success, -1 if an error occured
+ */
+int SysRemove(char* filename){
+  int res;
+
+  //check if file is opening or not
+  if(fdt.isOpen(filename)){
+    DEBUG(dbgFile, "\n\tCannot remove file " << filename << " because it is opening");
+    return -1;
+  }
+
+  if (kernel->fileSystem->Remove(filename))
+  {
+    res = 0;
+  }
+  else
+  {
+    res = -1;
+  }
+
+  DEBUG(dbgFile, "\n\tRemoved file " << filename);
   return res;
 }
 

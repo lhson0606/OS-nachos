@@ -12,13 +12,13 @@ int main(){
     int seek_position = 0;
     int seek_result = -1;
 
-    // /*---------------------------*/
-    // if(Create(filename, 0) == 0){    
-    //     PrintStrn("File created\n");           
-    // }else{
-    //     PrintStrn("Can't create file1\n");
-    //     Halt();
-    // }
+    /*---------------------------*/
+    if(Create(filename, 0) == 0){    
+        PrintStrn("File created\n");           
+    }else{
+        PrintStrn("Can't create file1\n");
+        Halt();
+    }
 
     /*---------------------------*/
     fileID = Open(filename, 1);
@@ -58,13 +58,21 @@ int main(){
     
 
 
-    // /*---------------------------*/
-    // if(Close(fileID) == 0){
-    //     PrintStrn("File1 closed\n");
-    // }else{
-    //     PrintStrn("Can't close file1\n");
-    //     Halt();
-    // }
+    /*---------------------------*/
+    if(Close(fileID) == 0){
+        PrintStrn("File1 closed\n");
+    }else{
+        PrintStrn("Can't close file1\n");
+        Halt();
+    }
+
+    /*---------------------------*/
+    if(Remove(filename) == 0){
+        PrintStrn("File1 removed\n");
+    }else{
+        PrintStrn("Can't remove file1\n");
+        Halt();
+    }
 
     Halt();
 }
