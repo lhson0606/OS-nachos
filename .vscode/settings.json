@@ -9,6 +9,10 @@
         "unistd.h": "c",
         "copyright.h": "c",
         "iostream": "cpp",
-        "new": "cpp"
-    }
+        "new": "cpp",
+        "array": "cpp",
+        "initializer_list": "cpp",
+        "string_view": "cpp",
+        "utility": "cpp"
+    },
 }

@@ -60,6 +60,20 @@ public:
 		currentOffset += numWritten;
 		return numWritten;
 	}
+	int Seek(int position)
+	{
+		if(position < 0)
+		{
+			return -1;
+		}else if(position > Length())
+		{
+			return -1;
+		}
+
+		currentOffset = position;
+
+		return currentOffset;
+	}
 
 	int Length()
 	{

@@ -74,8 +74,7 @@ char* User2System(int virtAddr, int limit);
  * @param[in]  virtAddr  The virtual address
  * @param[in]  len       The length
  * @param      buffer    The buffer
- * @return     The virtual address.
- * @note       The caller have responsibility to free the returned buffer.
+ * @return     Written size.
 */
 int System2User(int virtAddr, int len, char* buffer);
 
@@ -222,17 +221,25 @@ void ExceptionHandler(ExceptionType which)
 				DEBUG(dbgSys, "[SC] SC_Read.\n");
 			    OpenFileID fd;
 				int size;
-				char* sys_buffer = new char[size + 1];
-				memset(sys_buffer, '\0', size + 1);
+				char* sys_buffer = NULL;
 
 				virtAddr = kernel->machine->ReadRegister(4);
 				size = kernel->machine->ReadRegister(5);
 				fd = kernel->machine->ReadRegister(6);
 
+				sys_buffer = new char[size+1];
+				memset(sys_buffer, 0, size+1);
+				//extra check
+				if(sys_buffer == NULL){
+					DEBUG(dbgSys, "\tFatal: System memory drained\n");
+					kernel->machine->WriteRegister(2, -1);
+					return;
+				}
+
 				int read_count = -1;
 				read_count = SysRead(sys_buffer, size, fd);
 				//convert kernel address to user address
-				int write_count = 0;
+				int write_count = -1;
 				write_count = System2User(virtAddr, size, sys_buffer);
 				
 				DEBUG(dbgSys, "\tRead count: " << read_count << "\n");
@@ -283,6 +290,31 @@ void ExceptionHandler(ExceptionType which)
 
 				increasePC();
 				delete[] sys_buffer;
+				return;
+				ASSERTNOTREACHED();
+				break;
+			}
+
+			case SC_Seek:
+			{
+				DEBUG(dbgSys, "[SC] SC_Seek.\n");
+			    OpenFileID fd;
+				int pos;
+
+				pos = kernel->machine->ReadRegister(4);
+				fd = kernel->machine->ReadRegister(5);
+
+				DEBUG(dbgSys, "\tFile descriptor: "<<fd<<"\n");
+				DEBUG(dbgSys, "\tPosition: "<<pos<<"\n");
+
+				int res = -1;
+				res = SysSeek(pos, fd);
+
+				DEBUG(dbgSys, "\tSeeked result: " << res << "\n");
+				
+				kernel->machine->WriteRegister(2, res);
+
+				increasePC();
 				return;
 				ASSERTNOTREACHED();
 				break;
@@ -355,7 +387,7 @@ void ExceptionHandler(ExceptionType which)
 	break;
 
 	default:
-		cerr << "Unexpected user mode exception" << (int)which << "\n";
+		cerr << "Unexpected user mode exception " << (int)which << "\n";
 		break;
 	}
 	ASSERTNOTREACHED();

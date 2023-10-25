@@ -14,6 +14,7 @@
 #include "kernel.h"
 #include "synchconsole.h"
 #include "fdt.h"
+#include "openfile.h"
 
 static FileDescriptorTable fdt;
 
@@ -45,6 +46,20 @@ int SysCreate(char *filename)
 int SysAdd(int op1, int op2)
 {
   return op1 + op2;
+}
+
+/**
+ * Print a string on the console
+ * @param string The null-terminated string to print
+ * @see ConsoleDriver::PutString
+ */
+void SysPrintString(char *string)
+{
+  while(*string != '\0'){
+    kernel->synchConsoleOut->PutChar(*string);
+    string++;
+  }
+  // kernel->GetConsole()->PutString(string);
 }
 
 /**
@@ -94,9 +109,9 @@ int consoleRead(char *buffer, int size)
     c = kernel->synchConsoleIn->GetChar();
     DEBUG(dbgFile, "\n\tRead character " << c << " from console "<< i << " times");
 
-    if (c == EOF)
+    if (c == EOF || c == '\0' || c == '\n')
     {
-      DEBUG(dbgFile, "\n\tEnd of file reached");
+      DEBUG(dbgFile, "\n\tEnd string reached");
       buffer[i] = '\0';
       break;
     }
@@ -185,6 +200,41 @@ int SysWrite(char* buffer, int size, OpenFileID fd){
   
   DEBUG(dbgFile, "\n\tWrote " << res << " characters to fd " << fd);
   DEBUG(dbgFile, "\n\tValue: " << buffer);
+  return res;
+}
+
+void exitWithError(char* msg){
+  SysPrintString(msg);
+  kernel->interrupt->Halt();
+}
+
+// int performSeek(int pos, OpenFile* file){
+//   char* buffer = new char[pos+1];
+//   int result = file->Read(buffer, pos);
+//   delete[] buffer;
+//   return result;
+// }
+
+int SysSeek(int pos, OpenFileID fd){
+  int res = pos;
+  OpenFile *file = fdt.getFile(fd);
+
+  // check for validity of file
+  if(fd == STDIN || fd == STDOUT){
+    exitWithError("Cannot seek on STDIN or STDOUT");
+  }
+  else if (file == NULL)
+  {
+    return -1;
+  }
+  else if(res == -1){//seek to EOF
+    pos = file->Length();
+  }
+
+  file->Seek(pos);
+  res = pos;
+
+  DEBUG(dbgFile, "\n\tSeeked to position " << pos << " in fd " << fd);
   return res;
 }
 
