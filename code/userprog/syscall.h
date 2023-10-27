@@ -154,6 +154,12 @@ int Seek(int position, OpenFileId id);
  */
 int Close(OpenFileId id);
 
+/**
+ * Creates a new socket and returns the socket descriptor.
+ * @return The socket descriptor on success, -1 on failure.
+*/
+//int SocketTCP();
+
 
 /* User-level thread operations: Fork and Yield.  To allow multiple
  * threads to run within a user program. 

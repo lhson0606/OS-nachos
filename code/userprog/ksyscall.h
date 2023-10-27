@@ -16,7 +16,7 @@
 #include "fdt.h"
 #include "openfile.h"
 
-static FileDescriptorTable fdt;
+static FileDescriptorTable file_fdt;
 
 /**
  * Systemcall interface
@@ -84,7 +84,21 @@ void SysPrintChar(char c)
  */
 OpenFileID SysOpen(FileName filename, OpenMode mode)
 {
-  return fdt.Open(filename, mode);
+  if(!file_fdt.hasFreeFileDescriptor())
+  {
+    return -1;
+  }
+
+  DyOpenFile *file = new DyOpenFile(filename, mode);
+  int res = file->open();
+  if(res == -1){
+    DEBUG(dbgFile, "\n\tCannot create file " << filename);
+    delete file;
+    return -1;
+  }else{
+    int fd = file_fdt.Add(file);
+    return fd;
+  }
 }
 
 /*
@@ -94,7 +108,7 @@ OpenFileID SysOpen(FileName filename, OpenMode mode)
  */
 int SysClose(OpenFileID id)
 {
-  return fdt.Close(id);
+  return file_fdt.close(id);
 }
 
 int consoleRead(char *buffer, int size)
@@ -133,7 +147,7 @@ int SysRead(char *buffer, int size, OpenFileID fd)
   }
 
   int res;
-  OpenFile *file = fdt.getFile(fd);
+  OpenStream *file = file_fdt.getStream(fd);
 
   // check for validity of file
   if (file == NULL)
@@ -142,7 +156,7 @@ int SysRead(char *buffer, int size, OpenFileID fd)
   }
   else
   {
-    res = file->Read(buffer, size);
+    res = file->read(buffer, size);
   }
 
   DEBUG(dbgFile, "\n\tRead " << res << " characters from fd " << fd);
@@ -184,18 +198,18 @@ int SysWrite(char* buffer, int size, OpenFileID fd){
   DEBUG(dbgFile, "\n\tWriting to fd " << fd << " with size " << size);
 
   int res;
-  OpenFile *file = fdt.getFile(fd);
+  OpenStream *file = file_fdt.getStream(fd);
 
   // check for validity of file
   if (file == NULL)
   {
     res = -1;
-  }else if(fdt.isReadOnly(fd)){
+  }else if(!file->canWrite()){
     res = -1;
   }
   else
   {
-    res = file->Write(buffer, size);
+    res = file->write(buffer, size);
   }
   
   DEBUG(dbgFile, "\n\tWrote " << res << " characters to fd " << fd);
@@ -217,7 +231,7 @@ void exitWithError(char* msg){
 */
 int SysSeek(int pos, OpenFileID fd){
   int res = pos;
-  OpenFile *file = fdt.getFile(fd);
+  OpenStream *file = file_fdt.getStream(fd);
 
   // check for validity of file
   if(fd == STDIN || fd == STDOUT){
@@ -228,10 +242,10 @@ int SysSeek(int pos, OpenFileID fd){
     return -1;
   }
   else if(res == -1){//seek to EOF
-    pos = file->Length();
+    pos = file->length();
   }
 
-  file->Seek(pos);
+  file->seek(pos);
   res = pos;
 
   DEBUG(dbgFile, "\n\tSeeked to position " << pos << " in fd " << fd);
@@ -247,7 +261,7 @@ int SysRemove(char* filename){
   int res;
 
   //check if file is opening or not
-  if(fdt.isOpen(filename)){
+  if(file_fdt.isOpen(filename)){
     DEBUG(dbgFile, "\n\tCannot remove file " << filename << " because it is opening");
     return -1;
   }

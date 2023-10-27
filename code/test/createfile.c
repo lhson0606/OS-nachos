@@ -30,19 +30,19 @@ int main(){
         Halt();
     }
 
-    /*---------------------------*/
+    // /*---------------------------*/
     charWritten = Write("Hello world", 11, fileID);
 
     if(charWritten != -1){
         PrintStrn("Write to file1 success\n");
     }else{
         PrintStrn("Can't write to file1\n");
-        //Halt();
+        Halt();
     } //bugs here
 
     /*---------------------------*/
     
-    seek_result = Seek(seek_position, fileID);
+    //seek_result = Seek(seek_position, fileID);
 
     /*---------------------------*/
     read_count = Read(buffer, 11, fileID);
@@ -58,7 +58,7 @@ int main(){
     
 
 
-    /*---------------------------*/
+    // /*---------------------------*/
     if(Close(fileID) == 0){
         PrintStrn("File1 closed\n");
     }else{

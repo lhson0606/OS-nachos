@@ -285,22 +285,23 @@ THREAD_O = alarm.o kernel.o main.o scheduler.o synch.o thread.o
 USERPROG_H = ../userprog/addrspace.h\
 	../userprog/syscall.h\
 	../userprog/synchconsole.h\
-	../userprog/noff.h\
-	../userprog/fdt.h
+	../userprog/noff.h
 
 USERPROG_C = ../userprog/addrspace.cc\
 	../userprog/exception.cc\
-	../userprog/synchconsole.cc\
-	../userprog/fdt.cc
+	../userprog/synchconsole.cc
 
-USERPROG_O = addrspace.o exception.o synchconsole.o fdt.o
+USERPROG_O = addrspace.o exception.o synchconsole.o
 
 FILESYS_H =../filesys/directory.h \
 	../filesys/filehdr.h\
 	../filesys/filesys.h \
 	../filesys/openfile.h\
 	../filesys/pbitmap.h\
-	../filesys/synchdisk.h
+	../filesys/synchdisk.h\
+	../filesys/fdt.h\
+	../filesys/dyopenfile.h\
+	../filesys/openstream.h\
 
 FILESYS_C =../filesys/directory.cc\
 	../filesys/filehdr.cc\
@@ -308,14 +309,19 @@ FILESYS_C =../filesys/directory.cc\
 	../filesys/pbitmap.cc\
 	../filesys/openfile.cc\
 	../filesys/synchdisk.cc\
+	../filesys/fdt.cc\
+	../filesys/dyopenfile.cc\
+	../filesys/openstream.cc\
 
-FILESYS_O =directory.o filehdr.o filesys.o pbitmap.o openfile.o synchdisk.o
+FILESYS_O =directory.o filehdr.o filesys.o pbitmap.o openfile.o synchdisk.o fdt.o dyopenfile.o openstream.o
 
-NETWORK_H = ../network/post.h
+NETWORK_H = ../network/post.h \
+	../network/socket.h
 
-NETWORK_C = ../network/post.cc
+NETWORK_C = ../network/post.cc\
+	../network/socket.cc\
 
-NETWORK_O = post.o
+NETWORK_O = post.o socket.o
 
 ##################################################################
 #  You probably don't want to change anything below this point in
