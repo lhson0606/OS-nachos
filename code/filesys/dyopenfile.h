@@ -47,10 +47,6 @@ public:
     }
 
     int read(char* buffer, int size) override{
-        if(open_mode == RO){
-            return -1;
-        }
-
         int read_size = openfile->ReadAt(buffer, size, read_pos);
 
         if(read_size == -1){
@@ -62,7 +58,7 @@ public:
     }
 
     int write(char* buffer, int size) override{
-        if(open_mode == 0){
+        if(open_mode == RO){
             return -1;
         }
 

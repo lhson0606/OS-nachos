@@ -31,7 +31,7 @@ int main(){
     }
 
     // /*---------------------------*/
-    charWritten = Write("Hello world", 11, fileID);
+    charWritten = Write("Hello world", 255, fileID);
 
     if(charWritten != -1){
         PrintStrn("Write to file1 success\n");
@@ -41,11 +41,24 @@ int main(){
     } //bugs here
 
     /*---------------------------*/
-    
-    //seek_result = Seek(seek_position, fileID);
+    read_count = Read(buffer, 255, fileID);
+    buffer[read_count+1] = '\0';
+
+    if(read_count != -1){
+        PrintStrn("Read from file1 success\n");
+        PrintStrn(buffer);
+    }else{
+        PrintStrn("Can't read from file1\n");
+        Halt();
+    }
 
     /*---------------------------*/
-    read_count = Read(buffer, 11, fileID);
+    
+    
+    seek_result = Seek(-1, fileID);
+
+    /*---------------------------*/
+    read_count = Read(buffer, 255, fileID);
     buffer[read_count+1] = '\0';
 
     if(read_count != -1){
