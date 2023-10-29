@@ -343,6 +343,101 @@ void ExceptionHandler(ExceptionType which)
 				break;
 			}
 
+			case SC_SocketTCP:
+			{
+				DEBUG(dbgSys, "[SC] SC_SocketTCP.\n");
+				int socketID;
+				socketID = SysSocketTCP();
+				DEBUG(dbgSys, "\tSocket ID: " << socketID << "\n");
+				kernel->machine->WriteRegister(2, socketID);
+				increasePC();
+				return;
+				ASSERTNOTREACHED();
+				break;
+			}
+
+			case SC_Connect:
+			{
+				DEBUG(dbgSys, "[SC] SC_Connect.\n");
+				int socketID;
+				int port;
+				char* ip;//"192.123.12.31.3"
+				int res;
+
+				socketID = kernel->machine->ReadRegister(4);
+				virtAddr = kernel->machine->ReadRegister(5);
+				port = kernel->machine->ReadRegister(6);
+
+				ip = User2System(virtAddr, FILE_NAME_MAX_LEN);
+
+				DEBUG(dbgSys, "\tSocket ID: " << socketID << "\n");
+				DEBUG(dbgSys, "\tIP: " << ip << "\n");
+				DEBUG(dbgSys, "\tPort: " << port << "\n");
+
+				res = SysConnect(socketID, ip, port);
+				DEBUG(dbgSys, "\tConnect result: " << res << "\n");
+				kernel->machine->WriteRegister(2, res);
+				increasePC();
+				return;
+				ASSERTNOTREACHED();
+			}
+
+			case SC_Send:
+			{
+				DEBUG(dbgSys, "[SC] SC_Send.\n");
+				int socketID;
+				int size;
+				char* buffer;
+				int res;
+
+				socketID = kernel->machine->ReadRegister(4);
+				virtAddr = kernel->machine->ReadRegister(5);
+				size = kernel->machine->ReadRegister(6);
+
+				buffer = User2System(virtAddr, size);
+
+				DEBUG(dbgSys, "\tSocket ID: " << socketID << "\n");
+				DEBUG(dbgSys, "\tSize: " << size << "\n");
+				DEBUG(dbgSys, "\tBuffer: " << buffer << "\n");
+
+				res = SysSend(socketID, buffer, size);
+				DEBUG(dbgSys, "\tSend result: " << res << "\n");
+				kernel->machine->WriteRegister(2, res);
+
+				delete[] buffer;
+				increasePC();
+				return;
+				ASSERTNOTREACHED();
+			}
+
+			case SC_Receive:
+			{
+				DEBUG(dbgSys, "[SC] SC_Receive.\n");
+				int socketID;
+				int size;
+				char* buffer;
+				int res;
+
+				socketID = kernel->machine->ReadRegister(4);
+				virtAddr = kernel->machine->ReadRegister(5);
+				size = kernel->machine->ReadRegister(6);
+
+				buffer = User2System(virtAddr, size);
+
+				DEBUG(dbgSys, "\tSocket ID: " << socketID << "\n");
+				DEBUG(dbgSys, "\tSize: " << size << "\n");
+				DEBUG(dbgSys, "\tBuffer: " << buffer << "\n");
+
+				res = SysReceive(socketID, buffer, size);
+				DEBUG(dbgSys, "\tReceive result: " << res << "\n");
+				kernel->machine->WriteRegister(2, res);
+
+				delete[] buffer;
+				increasePC();
+				return;
+				ASSERTNOTREACHED();
+			}
+
 			case SC_Add:
 			{
 				DEBUG(dbgSys, "Add " << kernel->machine->ReadRegister(4) << " + " << kernel->machine->ReadRegister(5) << "\n");
@@ -360,6 +455,23 @@ void ExceptionHandler(ExceptionType which)
 
 				return;
 
+				ASSERTNOTREACHED();
+				break;
+			}
+
+			case SC_Disconnect:
+			{
+				DEBUG(dbgSys, "[SC] SC_Disconnect.\n");
+				int socketID;
+				int res;
+
+				socketID = kernel->machine->ReadRegister(4);
+
+				res = SysDisconnect(socketID);
+
+				kernel->machine->WriteRegister(2, res);
+				increasePC();
+				return;
 				ASSERTNOTREACHED();
 				break;
 			}

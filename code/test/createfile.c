@@ -71,7 +71,7 @@ int main(){
     
 
 
-    // /*---------------------------*/
+    /*---------------------------*/
     if(Close(fileID) == 0){
         PrintStrn("File1 closed\n");
     }else{

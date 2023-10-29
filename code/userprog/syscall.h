@@ -41,6 +41,13 @@
 //Console operations
 #define SC_PrintStrn	50
 
+//Socket operations
+#define SC_SocketTCP	60
+#define SC_Connect		61
+#define SC_Send			62
+#define SC_Receive		63
+#define SC_Disconnect	64
+
 #ifndef IN_ASM
 
 /* The system call interface.  These are the operations the Nachos
@@ -158,7 +165,36 @@ int Close(OpenFileId id);
  * Creates a new socket and returns the socket descriptor.
  * @return The socket descriptor on success, -1 on failure.
 */
-//int SocketTCP();
+int SocketTCP();
+
+/**
+ * Connects to a socket.
+ * @param socketid The socket descriptor.
+ * @param ip The ip address to connect to.
+ * @param port The port to connect to.
+ * @return 0 on success, -1 on failure.
+*/
+int Connect(int socketid, char *ip, int port);
+
+/**
+ * Sends a message to a socket.
+ * @param socketid The socket descriptor.
+ * @param buffer The message to send.
+ * @param len The length of the message.
+ * @return The number of bytes sent on success, -1 on failure.
+*/
+int Send(int socketid, char *buffer, int len);
+
+/**
+ * Receives a message from a socket.
+ * @param socketid The socket descriptor.
+ * @param buffer The buffer to store the message in.
+ * @param len The length of the buffer.
+ * @return The number of bytes received on success, -1 on failure.
+*/
+int Receive(int socketid, char *buffer, int len);
+
+int Disconnect(int socketid);
 
 
 /* User-level thread operations: Fork and Yield.  To allow multiple

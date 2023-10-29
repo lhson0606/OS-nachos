@@ -279,4 +279,46 @@ int SysRemove(char* filename){
   return res;
 }
 
+int SysSocketTCP(){
+  int fd = file_fdt.Add(new Socket());
+  return fd;
+}
+
+int SysConnect(int fd, char* ip, int port){
+  Socket* socket = (Socket*) file_fdt.getStream(fd);
+
+  if(socket == NULL){
+    return -1;
+  }
+
+  int res = socket->connect(ip, port);
+  return res;
+}
+
+int SysSend(int fd, char* buffer, int len){
+  Socket* socket = (Socket*) file_fdt.getStream(fd);
+
+  if(socket == NULL){
+    return -1;
+  }
+
+  int res = socket->write(buffer, len);
+  return res;
+}
+
+int SysReceive(int socketID, char* buffer, int size){
+  Socket* socket = (Socket*) file_fdt.getStream(socketID);
+
+  if(socket == NULL){
+    return -1;
+  }
+
+  int res = socket->read(buffer, size);
+  return res;
+}
+
+int SysDisconnect(int socketID){
+  return 0;
+}
+
 #endif /* ! __USERPROG_KSYSCALL_H__ */
