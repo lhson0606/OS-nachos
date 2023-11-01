@@ -47,6 +47,8 @@
 #define SC_Send			62
 #define SC_Receive		63
 #define SC_Disconnect	64
+#define SC_ServerCreate    65
+#define SC_ServerListen    66
 
 #ifndef IN_ASM
 
@@ -195,6 +197,10 @@ int Send(int socketid, char *buffer, int len);
 int Receive(int socketid, char *buffer, int len);
 
 int Disconnect(int socketid);
+
+int ServerCreate(int port);
+
+int ServerListen(int ss_fd);
 
 
 /* User-level thread operations: Fork and Yield.  To allow multiple

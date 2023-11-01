@@ -194,6 +194,22 @@ Disconnect:
 	j	$31
 	.end Disconnect
 
+	.globl ServerCreate
+	.ent	ServerCreate
+ServerCreate:
+	addiu $2,$0,SC_ServerCreate
+	syscall
+	j	$31
+	.end ServerCreate
+
+	.globl ServerListen
+	.ent	ServerListen
+ServerListen:
+	addiu $2,$0,SC_ServerListen
+	syscall
+	j	$31
+	.end ServerListen
+
         .globl ThreadFork
         .ent    ThreadFork
 ThreadFork:

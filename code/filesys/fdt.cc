@@ -1,5 +1,7 @@
 #include "fdt.h"
 
+FileDescriptorTable* FileDescriptorTable::instance = NULL;
+
 FileDescriptorTable::FileDescriptorTable()
 {
     fdt = new OpenStream *[MAX_FILE_DESCRIPTOR]
@@ -104,4 +106,11 @@ OpenFileID FileDescriptorTable::getFreeFileDescriptor()
     }
 
     return fd;
+}
+
+FileDescriptorTable* FileDescriptorTable::getInstance(){
+    if(instance == NULL){
+        instance = new FileDescriptorTable();
+    }
+    return instance;
 }

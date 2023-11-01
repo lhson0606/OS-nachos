@@ -13,10 +13,8 @@
 
 #include "kernel.h"
 #include "synchconsole.h"
-#include "fdt.h"
+#include "serversocket.h"
 #include "openfile.h"
-
-static FileDescriptorTable file_fdt;
 
 /**
  * Systemcall interface
@@ -84,7 +82,7 @@ void SysPrintChar(char c)
  */
 OpenFileID SysOpen(FileName filename, OpenMode mode)
 {
-  if(!file_fdt.hasFreeFileDescriptor())
+  if(!FileDescriptorTable::getInstance()->hasFreeFileDescriptor())
   {
     return -1;
   }
@@ -96,7 +94,7 @@ OpenFileID SysOpen(FileName filename, OpenMode mode)
     delete file;
     return -1;
   }else{
-    int fd = file_fdt.Add(file);
+    int fd = FileDescriptorTable::getInstance()->Add(file);
     return fd;
   }
 }
@@ -108,7 +106,7 @@ OpenFileID SysOpen(FileName filename, OpenMode mode)
  */
 int SysClose(OpenFileID id)
 {
-  return file_fdt.close(id);
+  return FileDescriptorTable::getInstance()->close(id);
 }
 
 int consoleRead(char *buffer, int size)
@@ -147,7 +145,7 @@ int SysRead(char *buffer, int size, OpenFileID fd)
   }
 
   int res;
-  OpenStream *file = file_fdt.getStream(fd);
+  OpenStream *file = FileDescriptorTable::getInstance()->getStream(fd);
 
   // check for validity of file
   if (file == NULL)
@@ -198,7 +196,7 @@ int SysWrite(char* buffer, int size, OpenFileID fd){
   DEBUG(dbgFile, "\n\tWriting to fd " << fd << " with size " << size);
 
   int res;
-  OpenStream *file = file_fdt.getStream(fd);
+  OpenStream *file = FileDescriptorTable::getInstance()->getStream(fd);
 
   // check for validity of file
   if (file == NULL)
@@ -231,7 +229,7 @@ void exitWithError(char* msg){
 */
 int SysSeek(int pos, OpenFileID fd){
   int res = pos;
-  OpenStream *file = file_fdt.getStream(fd);
+  OpenStream *file = FileDescriptorTable::getInstance()->getStream(fd);
 
   // check for validity of file
   if(fd == STDIN || fd == STDOUT){
@@ -261,7 +259,7 @@ int SysRemove(char* filename){
   int res;
 
   //check if file is opening or not
-  if(file_fdt.isOpen(filename)){
+  if(FileDescriptorTable::getInstance()->isOpen(filename)){
     DEBUG(dbgFile, "\n\tCannot remove file " << filename << " because it is opening");
     return -1;
   }
@@ -280,23 +278,23 @@ int SysRemove(char* filename){
 }
 
 int SysSocketTCP(){
-  int fd = file_fdt.Add(new Socket());
+  int fd = FileDescriptorTable::getInstance()->Add(new Socket());
   return fd;
 }
 
 int SysConnect(int fd, char* ip, int port){
-  Socket* socket = (Socket*) file_fdt.getStream(fd);
+  Socket* socket = (Socket*) FileDescriptorTable::getInstance()->getStream(fd);
 
   if(socket == NULL){
     return -1;
   }
 
-  int res = socket->connect(ip, port);
+  int res = socket->connect_s(ip, port);
   return res;
 }
 
 int SysSend(int fd, char* buffer, int len){
-  Socket* socket = (Socket*) file_fdt.getStream(fd);
+  Socket* socket = (Socket*) FileDescriptorTable::getInstance()->getStream(fd);
 
   if(socket == NULL){
     return -1;
@@ -307,7 +305,7 @@ int SysSend(int fd, char* buffer, int len){
 }
 
 int SysReceive(int socketID, char* buffer, int size){
-  Socket* socket = (Socket*) file_fdt.getStream(socketID);
+  Socket* socket = (Socket*) FileDescriptorTable::getInstance()->getStream(socketID);
 
   if(socket == NULL){
     return -1;
@@ -318,6 +316,31 @@ int SysReceive(int socketID, char* buffer, int size){
 }
 
 int SysDisconnect(int socketID){
+  return 0;
+}
+
+int SysServerCreate(int port){
+  int fd = FileDescriptorTable::getInstance()->Add(new ServerSocket(port));
+  return fd;
+}
+
+int SysServerListen(int ssID){
+  ServerSocket* serverSocket = (ServerSocket*) FileDescriptorTable::getInstance()->getStream(ssID);
+  if(serverSocket == NULL){
+    return -1;
+  }
+
+  int res = serverSocket->listen();
+  return res;
+}
+
+int SysSSPollAccept(int ss_fd){
+  ServerSocket* serverSocket = (ServerSocket*) FileDescriptorTable::getInstance()->getStream(ss_fd);
+  if(serverSocket == NULL){
+    return -1;
+  }
+
+  //int res = serverSocket->pollAccept();
   return 0;
 }
 

@@ -316,12 +316,14 @@ FILESYS_C =../filesys/directory.cc\
 FILESYS_O =directory.o filehdr.o filesys.o pbitmap.o openfile.o synchdisk.o fdt.o dyopenfile.o openstream.o
 
 NETWORK_H = ../network/post.h \
-	../network/socket.h
+	../network/socket.h\
+	../network/serversocket.h\
 
 NETWORK_C = ../network/post.cc\
 	../network/socket.cc\
+	../network/serversocket.cc\
 
-NETWORK_O = post.o socket.o
+NETWORK_O = post.o socket.o serversocket.o
 
 ##################################################################
 #  You probably don't want to change anything below this point in

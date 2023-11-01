@@ -1,49 +1,54 @@
+#ifndef SOCKET_H
+#define SOCKET_H
+
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <unistd.h>
 #include "openstream.h"
-#include "network.h"
+#include "openfile.h"
+#include "main.h"
+
+
+int closeSocket(int socket);
+int unixSocketWrite(int socket, char* buffer, int size);
+int unixSocketRead(int socket, char* buffer, int size);
 
 class Socket : public OpenStream
 {
+private:
+
+    bool isSending = false;
+    int socket_fd;
+    int pos;
+    char ip_address[32];
+    int port;
+    int type;
+    int protocol;
+    int status;
+    int const MaxMailSize = 1024;
+
 public:
     Socket(){
         
     };
 
     int open() override{
-        socket = OpenSocket();
-
-        if (socket == -1){
-            return -1;
-        }
-
-        DEBUG(dbgNet, "Socket opened "<< socket);
-
         return 0;
     }
 
-    int read(char* buffer, int size) override{        
-        input->Receive(buffer);
-        DEBUG(dbgNet, "Socket read "<< buffer );
-        return 0;
+    int read(char* buffer, int size) override{
+        return unixSocketRead(socket_fd, buffer, size);
     };
 
     int write(char* buffer, int size) override{
-        PacketHeader ph;
-        //ph.from = 0;
-        ph.to = 0;
-        ph.length = size;
-        isSending = true;
-        // wait for previous send to finish
-        output->Send(ph, buffer);
-        
-        //input->Receive(buffer);
-        //DEBUG(dbgNet, "Socket wrote "<< buffer );
-
+        int res = unixSocketWrite(socket_fd, buffer, size);
+        return res;
     };
     int seek(int pos) override{return -1;};
     int close() override{
-        CloseSocket(socket);
-        socket = -1;
-        return 0;
+        int res = closeSocket(socket_fd);
+        socket_fd = -1;
+        return res;
     };
     bool canRead() override{return true;};
     bool canWrite() override{return true;};
@@ -52,73 +57,52 @@ public:
         strncpy(buffer, ip_address, size);
     };
 
-    int connect(char* ip, int port){
-        DEBUG(dbgNet, "Connecting to " << ip << ":" << port);
+    int connect_s(char* ip, int port){
+
+        int status;
+        struct sockaddr_in serv_addr;
+
+        DEBUG(dbgNet, "\n\tConnecting to " << ip << ":" << port);
         strncpy(ip_address, ip, MAX_FILE_NAME_LENGTH);
         this->port = port;
-        
-        input = new NetworkInput(receivedCallbackObj);
-        output = new NetworkOutput(1.0, sentCallbackObj);
 
-        return 0;
+        if((socket_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)  
+        { 
+            DEBUG(dbgNet, "\n\tSocket creation error"); 
+            return -1; 
+        }
+
+        DEBUG(dbgNet, "\n\tSocket created "<< socket_fd);
+
+        serv_addr.sin_family = AF_INET;
+        serv_addr.sin_port = htons(port);
+
+        if(inet_pton(AF_INET, ip, &serv_addr.sin_addr) <= 0)  
+        { 
+            DEBUG(dbgNet, "\n\tInvalid address/ Address not supported"); 
+            return -1; 
+        }else{
+            DEBUG(dbgNet, "\n\tAddress " << ip_address << " is valid");
+        }
+
+        if((status = connect(socket_fd, (struct sockaddr*)&serv_addr,  sizeof(serv_addr))) < 0)  
+        { 
+            DEBUG(dbgNet, "\n\tConnection Failed " << status); 
+            return -1; 
+        }else{
+            DEBUG(dbgNet, "\n\tConnected to " << ip_address << ":" << port);
+        }
+
+        return socket_fd;
     }
 
-    class NetworkInputCallback : public CallBackObj{
-    public:
-        NetworkInputCallback(Socket* socket){
-            this->socket = socket;
-        };
-
-        void CallBack(){
-            socket->receivedCallback();
-        };
-    private:
-        Socket* socket;
-    };
-
-    class NetworkOutputCallback : public CallBackObj{
-    public:
-        NetworkOutputCallback(Socket* socket){
-            this->socket = socket;
-        };
-
-        void CallBack(){
-            socket->sentCallback();
-        };
-    private:
-        Socket* socket;
-    };
 
     ~Socket(){
-        // close socket if it is open
-        if(socket != -1){
+        if(socket_fd != -1){
             close();
         }
-        delete receivedCallbackObj;
-        delete sentCallbackObj;
+        
     };
-private:
-    void receivedCallback(){
-        DEBUG(dbgNet, "Received callback");
-    }
-
-    void sentCallback(){
-        DEBUG(dbgNet, "Sent callback");
-        isSending = false;
-    }
-
-    bool isSending = false;
-
-    int socket;
-    int pos;
-    FileName ip_address;
-    int port;
-    int type;
-    int protocol;
-    int status;
-    NetworkInput* input;
-    NetworkOutput* output;
-    NetworkInputCallback* receivedCallbackObj;
-    NetworkOutputCallback* sentCallbackObj;
-    int const MaxMailSize = 1024;
 };
+
+#endif // SOCKET_H

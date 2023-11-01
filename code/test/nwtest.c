@@ -20,12 +20,12 @@ int main(){
     // }
 
     /*---------------------------------------------------------*/
-    connect_result = Connect(socketID, "172.24.99.181", 8889);
+    connect_result = Connect(socketID, "127.0.0.1", 8888);
 
     if(connect_result != -1){
-        //PrintStrn("Connect success\n");
+        PrintStrn("Connect success\n");
     }else{
-        //PrintStrn("Connect fail\n");
+        PrintStrn("Connect fail\n");
         Halt();
     }
 
@@ -40,14 +40,14 @@ int main(){
     // }
 
     /*---------------------------------------------------------*/
-    result = Disconnect(0);
+    //result = Disconnect(0);
 
-    if(result != -1){
-        PrintStrn("Disconnect success\n");
-    }else{
-        PrintStrn("Disconnect fail\n");
-        Halt();
-    }
+    // if(result != -1){
+    //     PrintStrn("Disconnect success\n");
+    // }else{
+    //     PrintStrn("Disconnect fail\n");
+    //     Halt();
+    // }
 
     Halt();
 }

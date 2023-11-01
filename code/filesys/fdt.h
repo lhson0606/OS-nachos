@@ -10,6 +10,17 @@
 
 class FileDescriptorTable
 {
+private:
+    //store the file descriptors
+    OpenStream **fdt;
+
+    /**
+     * @brief      Gets the free file descriptors.
+     * @return     The free file descriptor on success, -1 on fail (is full).
+     */
+    OpenFileID getFreeFileDescriptor();
+
+    static FileDescriptorTable* instance;
 public:
     FileDescriptorTable();
 
@@ -56,15 +67,8 @@ public:
     */
     int close(OpenFileID fd);
 
-private:
-    //store the file descriptors
-    OpenStream **fdt;
+    static FileDescriptorTable* getInstance();
 
-    /**
-     * @brief      Gets the free file descriptors.
-     * @return     The free file descriptor on success, -1 on fail (is full).
-     */
-    OpenFileID getFreeFileDescriptor();
 };
-
 #endif // _FDT_H_
+

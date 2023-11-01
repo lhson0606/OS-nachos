@@ -417,6 +417,7 @@ void ExceptionHandler(ExceptionType which)
 				int size;
 				char* buffer;
 				int res;
+								int write2User_count;
 
 				socketID = kernel->machine->ReadRegister(4);
 				virtAddr = kernel->machine->ReadRegister(5);
@@ -430,6 +431,10 @@ void ExceptionHandler(ExceptionType which)
 
 				res = SysReceive(socketID, buffer, size);
 				DEBUG(dbgSys, "\tReceive result: " << res << "\n");
+
+				write2User_count = System2User(virtAddr, res, buffer);
+				DEBUG(dbgSys, "\tWrite to user count: " << write2User_count << "\n");
+
 				kernel->machine->WriteRegister(2, res);
 
 				delete[] buffer;
@@ -512,7 +517,41 @@ void ExceptionHandler(ExceptionType which)
 				return;
 				ASSERTNOTREACHED();
 				break;
-			}		
+			}
+
+			case SC_ServerCreate:
+			{
+				DEBUG(dbgSys, "[SC] SC_ServerCreate.\n");
+				int port;
+				int res;
+
+				port = kernel->machine->ReadRegister(4);
+
+				res = SysServerCreate(port);
+
+				kernel->machine->WriteRegister(2, res);
+				increasePC();
+				return;
+				ASSERTNOTREACHED();
+				break;
+			}	
+
+			case SC_ServerListen:
+			{
+				DEBUG(dbgSys, "[SC] SC_ServerListen.\n");
+				int ssID;
+				int res;
+
+				ssID = kernel->machine->ReadRegister(4);
+
+				res = SysServerListen(ssID);
+
+				kernel->machine->WriteRegister(2, res);
+				increasePC();
+				return;
+				ASSERTNOTREACHED();
+				break;
+			}
 			
 			default:
 				cerr << "Unexpected system call " << type << "\n";
