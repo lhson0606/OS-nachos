@@ -21,7 +21,6 @@ int ssClose(int socket){
 
 ServerSocket::ServerSocket(int port) : OpenStream(){
         this->port = port;
-        FileDescriptorTable::getInstance()->Add(this);
 };
 
 int ServerSocket::listen(){
@@ -48,8 +47,12 @@ int ServerSocket::listen(){
 
         //add child sockets to set
         for(int i = 0; i < MAX_CLIENTS; i++){
-            //socket descriptor
-            int sd = client_socket[i];
+            int sd = client_openfileID[i];
+
+            if(client_openfileID[i] != -1){
+                Socket* client = (Socket*) FileDescriptorTable::getInstance()->getStream(client_openfileID[i]);
+                sd = client->getSocketFd();
+            }
 
             //if valid socket descriptor then add to read list
             if(sd > 0){
@@ -73,60 +76,33 @@ int ServerSocket::listen(){
 
         if(FD_ISSET(ss_fd, &readfds)){
 
-            while(new_socket<0){
-                new_socket = accept(ss_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
-                DEBUG(dbgNet, "\n\tnew_socket: " << new_socket);
-                // error
-                DEBUG(dbgNet, "\n\tError - accept error: "<< errno);
-            }
-            
+            new_socket = accept(ss_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
 
             if(new_socket < 0){
                 DEBUG(dbgNet, "\n\tServerSocket::run() - accept error");
                 return error_code = -5;
-            }else{
-                DEBUG(dbgNet, "\n\tServerSocket::run() - New connection, socket fd is " << new_socket << " , ip is : " << inet_ntoa(address.sin_addr) << " , port : " << ntohs(address.sin_port));
             }
+
+            handleClientNewConnection(new_socket);
+            
         }
-        
-        //add new socket to array of sockets
-        for(int i = 0; i < MAX_CLIENTS; i++){
-            //if position is empty
-            if(client_socket[i] < 0){
-                client_socket[i] = new_socket;
-                DEBUG(dbgNet, "\n\tServerSocket::run() - Adding to list of sockets as " << i);
-                break;
-            }
-        }
+    
 
         //else its some IO operation on some other socket
         for(i = 0; i< MAX_CLIENTS; i++){
-            int sd = client_socket[i];
-            char buffer [MaxMailSize];
+            if(client_openfileID[i] == -1){
+                continue;
+            }
 
-            memset(buffer, 0, MaxMailSize);
+            Socket* client = (Socket*) FileDescriptorTable::getInstance()->getStream(client_openfileID[i]);
+            int sd = client->getSocketFd();
 
             if(FD_ISSET(sd, &readfds)){
                 
-                valread = ssRead(sd, buffer, MaxMailSize);
+                DEBUG(dbgNet, "\n\tServerSocket::run() - New I/O dectected on fd " << client_openfileID[i]);
+                DEBUG(dbgNet, "\n\tServerSocket::run() - Client sock: " << client->getSocketFd());
 
-                if(valread == 0){
-                    //Somebody disconnected, get his details and print
-                    getpeername(sd, (struct sockaddr*)&address, (socklen_t*)&addrlen);
-                    DEBUG(dbgNet, "\n\tHost disconnected, ip " << inet_ntoa(address.sin_addr) << " , port " << ntohs(address.sin_port));
-                    //Close the socket and mark as 0 in list for reuse
-                    ssClose(sd);
-                    client_socket[i] = -1;
-                }else{
-                    printf("\n\t%s\n", buffer);
-
-                    for(int i = 0; i<valread; i++){
-                        buffer[i] = toupper(buffer[i]);
-                    }
-
-                    ssWrite(sd, buffer, strlen(buffer));
-                }
-                
+                handleClientCommingMessage(i);           
 
             }
         }
@@ -140,9 +116,9 @@ int ServerSocket::init(){
 
     memset(&address, 0, sizeof(address));
 
-    //set all to empty slots
+    //set all to empty slots this will be used to reference client sockets in our file descriptor table
     for(int i = 0; i < MAX_CLIENTS; i++){
-        client_socket[i] = -1;
+        client_openfileID[i] = -1;
     }
 
     //create our server socket
@@ -184,31 +160,44 @@ int ServerSocket::init(){
     return 0;
 }
 int ServerSocket::open(){
-    return 0;
+    return -1;
 }
 
 int ServerSocket::read(char* buffer, int size){
-    return 0;
+    return -1;
 };
 
 int ServerSocket::write(char* buffer, int size){
-    return 0;
+    return -1;
 };
 
 int ServerSocket::seek(int pos){
     return -1;
 };
 
+//destructor will call this
 int ServerSocket::close(){
-    return 0;
+    //return ssClose(ss_fd);
+    for(int i = 0; i < MAX_CLIENTS; i++){
+        if(client_openfileID[i] != -1){
+            FileDescriptorTable::getInstance()->close(client_openfileID[i]);
+        }
+    }
+    int res = ssClose(ss_fd);
+
+    if(res == 0){
+        ss_fd = -1;
+    }
+
+    return res;
 };
 
 bool ServerSocket::canRead(){
-    return true;
+    return false;
 };
 
 bool ServerSocket::canWrite(){
-    return true;
+    return false;
 };
 
 int ServerSocket::length(){
@@ -219,23 +208,68 @@ void ServerSocket::getName(char* buffer, int size){
     strncpy(buffer, ip_address, size);
 };
 
+//fdt close() will call this
 ServerSocket::~ServerSocket(){
-    for(int i = 0; i < MAX_CLIENTS; i++){
-        if(client_socket[i] != -1){
-            ssClose(client_socket[i]);
-        }
-    }
-
     if(ss_fd != -1){
         close();
     }
-    
 };   
 
-int ServerSocket::handleClientNewConnection(int client_sock_fd){
+int ServerSocket::handleClientNewConnection(int new_socket){
+    DEBUG(dbgNet, "\n\tnew_socket: " << new_socket);            
+
+    if(new_socket < 0){
+        DEBUG(dbgNet, "\n\tServerSocket::run() - accept error");
+        return error_code = -5;
+    }else{
+        DEBUG(dbgNet, "\n\tServerSocket::run() - New connection, socket fd is " << new_socket << " , ip is : " << inet_ntoa(address.sin_addr) << " , port : " << ntohs(address.sin_port));
+    }
+
+    
+    //add new socket to array of sockets
+    for(int i = 0; i < MAX_CLIENTS; i++){
+        //if position is empty
+        if(client_openfileID[i] < 0){
+            Socket* client = new Socket(new_socket);
+            int add_res;
+            if((add_res = FileDescriptorTable::getInstance()->Add(client)) < 0){
+                DEBUG(dbgNet, "\n\tServerSocket::run() - Cannot add client to file descriptor table");
+                delete client;
+                client = NULL;
+            }else{
+                client_openfileID[i] = add_res;
+                DEBUG(dbgNet, "\n\tServerSocket::run() - Adding new connection to fdt with fd: " << add_res);
+            }
+            break;
+        }
+    }
 
 }
 
-int ServerSocket::handleClientCommingMessage(int client_sock_fd, char* buffer, int size){
+int ServerSocket::handleClientCommingMessage(int index){
+    char buffer [MaxMailSize];
+    int valread = -1;
+    Socket* client = NULL;
+    
+    client = (Socket*) FileDescriptorTable::getInstance()->getStream(client_openfileID[index]);
+    memset(buffer, 0, MaxMailSize);    
+    valread = client->read(buffer, MaxMailSize);
 
+    if(valread == 0){
+        //Somebody disconnected, get his details and print
+        getpeername(client->getSocketFd(), (struct sockaddr*)&address, (socklen_t*)&addrlen);
+        DEBUG(dbgNet, "\n\tHost disconnected, ip " << inet_ntoa(address.sin_addr) << " , port " << ntohs(address.sin_port));
+        //Close the socket and mark as 0 in list for reuse
+        FileDescriptorTable::getInstance()->close(client_openfileID[index]);
+        client_openfileID[index] = -1;
+    }else{
+        printf("\n\t%s\n", buffer);
+
+        for(int i = 0; i<valread; i++){
+            buffer[i] = toupper(buffer[i]);
+        }
+
+        //ssWrite(client->getSocketFd(), buffer, strlen(buffer));
+        client->write(buffer, strlen(buffer));
+    }
 }

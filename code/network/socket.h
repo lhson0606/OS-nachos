@@ -14,6 +14,12 @@ public:
     Socket();
 
     /**
+     * @brief create a socket
+     * @param socket fd (C socket fd not our fd)
+    */
+    Socket(int sock_fd);
+
+    /**
      * @brief no used
     */
     int open() override;
@@ -71,6 +77,7 @@ public:
     /**
      * @brief destructor, close socket if it is opening
     */
+    int getSocketFd();
     ~Socket();
 
 private:

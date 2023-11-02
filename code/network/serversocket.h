@@ -37,18 +37,14 @@ public:
     int open() override;
 
     /**
-     * @brief read from socket
-     * @param buffer
-     * @param size
-     * @return number of bytes read, -1 if error
+     * @brief no used
+     * @return -1
     */
     int read(char* buffer, int size) override;
 
     /**
-     * @brief write to socket
-     * @param buffer
-     * @param size
-     * @return number of bytes written, -1 if error
+     * @brief no used
+     * @return -1
     */
     int write(char* buffer, int size) override;
 
@@ -66,13 +62,13 @@ public:
 
     /**
      * @brief no used
-     * @return true
+     * @return false
     */
     bool canRead() override;
 
     /**
      * @brief no used
-     * @return true
+     * @return false
     */
     bool canWrite() override;
 
@@ -107,7 +103,8 @@ private:
     struct sockaddr_in address;
     //set of socket descriptors (unix file descriptors not us)
     fd_set readfds;
-    int client_socket[MAX_CLIENTS];
+    //reference to client socket descriptors in our file descriptor table
+    int client_openfileID[MAX_CLIENTS];
     int error_code = 0;
     //max number of unix file descriptors
     int max_sd;
@@ -121,19 +118,19 @@ private:
 
     /**
      * @brief handle new client connection
-     * @param client_sock_fd C lib socket fd (not our fd)
+     * @param new_socket C lib socket fd (not our fd)
      * @return 0 if success, -1 if error
     */
-    int handleClientNewConnection(int client_sock_fd); 
+    int handleClientNewConnection(int new_socket); 
 
     /**
      * @brief handle client comming message
-     * @param client_sock_fd C lib socket fd (not our fd)
+     * @param index where client socket fd is stored in client_openfileID
      * @param buffer
      * @param size
      * @return 0 if success, -1 if error
     */
-    int handleClientCommingMessage(int client_sock_fd, char* buffer, int size);
+    int handleClientCommingMessage(int index);
 
 };
 

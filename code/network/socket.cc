@@ -40,6 +40,10 @@ Socket::Socket(){
         
 };
 
+Socket::Socket(int sock_fd){
+    socket_fd = sock_fd;
+};
+
 int Socket::open(){
     return 0;
 }
@@ -115,6 +119,10 @@ int Socket::connect(char* ip, int port){
         DEBUG(dbgNet, "\n\tConnected to " << ip_address << ":" << port);
     }
 
+    return socket_fd;
+}
+
+int Socket::getSocketFd(){
     return socket_fd;
 }
 
