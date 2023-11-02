@@ -15,6 +15,7 @@
 #include "synchconsole.h"
 #include "serversocket.h"
 #include "openfile.h"
+#include "fdt.h"
 
 /**
  * Systemcall interface
@@ -289,7 +290,7 @@ int SysConnect(int fd, char* ip, int port){
     return -1;
   }
 
-  int res = socket->connect_s(ip, port);
+  int res = socket->connect(ip, port);
   return res;
 }
 
