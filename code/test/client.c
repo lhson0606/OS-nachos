@@ -27,7 +27,11 @@ void doTest(){
     // }
 
     /*---------------------------------------------------------*/
-    connect_result = Connect(socketID, "127.0.0.1", 8888);
+    PrintStrn("Waiting for server\n");
+
+    while(connect_result<0){
+        connect_result = Connect(socketID, "127.0.0.1", 8888);
+    }    
 
     if(connect_result != -1){
         PrintStrn("Connect success\n");
