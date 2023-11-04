@@ -112,7 +112,7 @@ ifeq ($(hosttype),unknown)
 PROGRAMS = unknownhost
 else
 # change this if you create a new test program!
-PROGRAMS = add halt shell matmult sort segments createfile nwtest client server cat delete concatenate
+PROGRAMS = add halt shell matmult sort segments createfile nwtest echoclient server cat delete concatenate fileclient
 endif
 
 all: $(PROGRAMS)
@@ -181,17 +181,23 @@ concatenate: concatenate.o start.o
 	$(LD) $(LDFLAGS) start.o concatenate.o -o concatenate.coff
 	$(COFF2NOFF) concatenate.coff concatenate
 
+fileclient.o: fileclient.c
+	$(CC) $(CFLAGS) -c fileclient.c
+fileclient: fileclient.o start.o
+	$(LD) $(LDFLAGS) start.o fileclient.o -o fileclient.coff
+	$(COFF2NOFF) fileclient.coff fileclient
+
 nwtest.o: nwtest.c
 	$(CC) $(CFLAGS) -c nwtest.c
 nwtest: nwtest.o start.o
 	$(LD) $(LDFLAGS) start.o nwtest.o -o nwtest.coff
 	$(COFF2NOFF) nwtest.coff nwtest
 
-client.o: client.c
-	$(CC) $(CFLAGS) -c client.c
-client: client.o start.o
-	$(LD) $(LDFLAGS) start.o client.o -o client.coff
-	$(COFF2NOFF) client.coff client
+echoclient.o: echoclient.c
+	$(CC) $(CFLAGS) -c echoclient.c
+echoclient: echoclient.o start.o
+	$(LD) $(LDFLAGS) start.o echoclient.o -o echoclient.coff
+	$(COFF2NOFF) echoclient.coff echoclient
 
 server.o: server.c
 	$(CC) $(CFLAGS) -c server.c

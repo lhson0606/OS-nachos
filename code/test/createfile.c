@@ -5,12 +5,12 @@
 
 int main(int argc, char **argv){
     //create file
-    int fileID = -1;
+    int create_result = -1;
     char* fileName = "hello.txt";
 
-    fileID = Create(fileName);
+    create_result = Create(fileName);
 
-    if(fileID == -1){
+    if(create_result == -1){
         PrintStrn("Create file hello.txt fail\n");
     }else{
         PrintStrn("Create file hello.txt success\n");

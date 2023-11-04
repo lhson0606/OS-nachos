@@ -19,12 +19,12 @@ void doTest(){
     /*---------------------------------------------------------*/
     socketID = SocketTCP();
 
-    // if(socketID != -1){
-    //     PrintStrn("Socket created\n");
-    // }else{
-    //     PrintStrn("Can't create socket\n");
-    //     Halt();
-    // }
+    if(socketID != -1){
+        PrintStrn("Socket created\n");
+    }else{
+        PrintStrn("Can't create socket\n");
+        Halt();
+    }
 
     /*---------------------------------------------------------*/
     PrintStrn("Waiting for server\n");
@@ -66,7 +66,10 @@ void doTest(){
 int main(){
     int i = 0;
 
-    doTest();
+    for(i = 0; i<4; i++){
+        doTest();
+    }
+    
 
     Halt();
 }
