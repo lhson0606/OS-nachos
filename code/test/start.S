@@ -210,6 +210,15 @@ ServerListen:
 	j	$31
 	.end ServerListen
 
+	.globl GetArgvs
+	.ent	GetArgvs
+GetArgvs:
+	addiu $2,$0,SC_GetArgvs
+	syscall
+	j	$31
+	.end GetArgvs
+
+
         .globl ThreadFork
         .ent    ThreadFork
 ThreadFork:

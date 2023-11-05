@@ -8,6 +8,12 @@
 #ifndef KERNEL_H
 #define KERNEL_H
 
+#define __USER_ARGS__
+
+#ifdef __USER_ARGS__
+#define MAX_ARG_NUM 10
+#endif
+
 #include "copyright.h"
 #include "debug.h"
 #include "utility.h"
@@ -59,6 +65,11 @@ public:
   PostOfficeOutput *postOfficeOut;
 
   int hostName; // machine identifier
+  
+#ifdef __USER_ARGS__
+  char *userArgs[MAX_ARG_NUM];
+  int userArgc = 0;
+#endif
 
 private:
   bool randomSlice;   // enable pseudo-random time slicing

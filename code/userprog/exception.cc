@@ -141,7 +141,52 @@ void ExceptionHandler(ExceptionType which)
 				ASSERTNOTREACHED();
 				break;
 			}
+
+			case SC_GetArgvs:
+			{
+				DEBUG(dbgSys, "[SC] SC_GetArgvs.\n");
+				int count = 0;
+				int virtAddr = 0;
+				int size = 0;
+				int i = 0;
+				int j = 0;
+				char* temp = NULL;
+				int write_count = 0;
+
+				count = kernel->machine->ReadRegister(4);
+				virtAddr = kernel->machine->ReadRegister(5);
+				size = kernel->machine->ReadRegister(6);
+
+				if(count>kernel->userArgc){
+				count = kernel->userArgc;
+				}
 				
+				temp = new char[size*count];
+				memset(temp, 0, size);
+
+				//write argvs to temp buffer
+				for(i = 0; i<count; i++){
+					for(j = 0; j<strnlen(kernel->userArgs[i], size); j++){
+						temp[i*size + j] = kernel->userArgs[i][j];
+					}
+				}
+
+				//write temp buffer to user space
+				do
+				{
+					kernel->machine->WriteMem(virtAddr + write_count, 1, temp[write_count]);
+					write_count++;
+				} while (write_count < size*count);
+
+				kernel->machine->WriteRegister(2, count);
+
+				delete[] temp;
+				increasePC();
+				return;
+				ASSERTNOTREACHED();
+				break;
+
+			}	
 
 			case SC_Open:
 			{

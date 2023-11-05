@@ -35,6 +35,9 @@
 #define SC_ThreadExit   14
 #define SC_ThreadJoin   15
 
+//command line arguments
+#define SC_GetArgvs         20
+
 //Arithmetic operations
 #define SC_Add		    42
 
@@ -196,12 +199,36 @@ int Send(int socketid, char *buffer, int len);
 */
 int Receive(int socketid, char *buffer, int len);
 
+/**
+ * Disconnects from a socket.
+ * @param socketid The socket descriptor.
+ * @return 0 on success, -1 on failure.
+*/
 int Disconnect(int socketid);
 
+/**
+ * Creates a new server socket and returns the socket descriptor.
+ * @param port The port to listen on.
+ * @return The socket descriptor on success, -1 on failure.
+*/
+*/
 int ServerCreate(int port);
 
+/**
+ * Listens on a server socket.
+ * @param ss_fd The socket descriptor.
+ * @return 0 on success, -1 on failure.
+*/
 int ServerListen(int ss_fd);
 
+/**
+ * Returns the command line arguments of the current process.
+ * @param argc The number of arguments that user program wants to get.
+ * @param argv The arguments buffer.
+ * @param size The size of an argument buffer.
+ * @return number of arguments on success, -1 on failure.
+*/
+int GetArgvs(int argc, char* argv[], int size);
 
 /* User-level thread operations: Fork and Yield.  To allow multiple
  * threads to run within a user program. 
