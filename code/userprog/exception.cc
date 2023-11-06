@@ -121,7 +121,7 @@ void ExceptionHandler(ExceptionType which)
 				DEBUG(dbgSys, "\tReading virtual address of filename.\n");
 				virtAddr = kernel->machine->ReadRegister(4);
 				filename = User2System(virtAddr, FILE_NAME_MAX_LEN);
-
+				
 				//extra check
 				if(!filename){
 					DEBUG(dbgSys, "\tFatal: System memory drained\n");
