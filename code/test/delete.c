@@ -4,17 +4,7 @@
 #define MaxStrnLength 255
 
 int main(int argc, char **argv){
-    char filename[] = "hello.c";
-    int delete_result;
-
-    delete_result = Remove(filename);
-
-    if (delete_result == -1){
-        PrintStrn("Can not delete file\n");
-        Halt();
-    }else{
-        PrintStrn("Delete file successfully\n");
-    }
+    //write createfile program here
 
     Halt();
 }

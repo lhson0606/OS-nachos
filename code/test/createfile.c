@@ -4,17 +4,7 @@
 #define MaxStrnLength 255
 
 int main(int argc, char **argv){
-    //create file
-    int create_result = -1;
-    char* fileName = "hello.txt";
-
-    create_result = Create(fileName);
-
-    if(create_result == -1){
-        PrintStrn("Create file hello.txt fail\n");
-    }else{
-        PrintStrn("Create file hello.txt success\n");
-    }
+    //write createfile program here
 
     Halt();
 }
