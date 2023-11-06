@@ -85,6 +85,12 @@ void SysPrintChar(char c)
  */
 OpenFileID SysOpen(FileName filename, OpenMode mode)
 {
+  //check if file is opening or not
+  if(FileDescriptorTable::getInstance()->isOpen(filename)){
+    DEBUG(dbgFile, "\n\tCannot open file " << filename << " because it is opening in fdt");
+    return -1;
+  }
+
   if(!FileDescriptorTable::getInstance()->hasFreeFileDescriptor())
   {
     return -1;
@@ -110,7 +116,15 @@ OpenFileID SysOpen(FileName filename, OpenMode mode)
  */
 int SysClose(OpenFileID id)
 {
-  return FileDescriptorTable::getInstance()->close(id);
+  int res = FileDescriptorTable::getInstance()->close(id);
+
+  if(res == -1){
+    DEBUG(dbgFile, "\n\tCannot close file " << id);
+  }else{
+    DEBUG(dbgFile, "\n\tClosed file " << id);
+  }
+
+  return res;
 }
 
 /**
@@ -188,7 +202,7 @@ int consoleWrite(char* buffer, int size){
   while (i < size)
   {
     c = buffer[i];
-    DEBUG(dbgFile, "\n\tWriting character " << c << " to console "<< i << " times");
+    //DEBUG(dbgFile, "\n\tWriting character " << c << " to console "<< i << " times");
 
     if (c == '\0')
     {
@@ -290,7 +304,7 @@ int SysRemove(char* filename){
 
   //check if file is opening or not
   if(FileDescriptorTable::getInstance()->isOpen(filename)){
-    DEBUG(dbgFile, "\n\tCannot remove file " << filename << " because it is opening");
+    DEBUG(dbgFile, "\n\tCannot remove file " << filename << " because it is opening in fdt");
     return -1;
   }
 
@@ -302,7 +316,7 @@ int SysRemove(char* filename){
   else
   {
     res = -1;
-    DEBUG(dbgFile, "\n\tCannot remove file " << filename);
+    DEBUG(dbgFile, "\n\tCannot remove file (linux)" << filename);
   }
 
   return res;
