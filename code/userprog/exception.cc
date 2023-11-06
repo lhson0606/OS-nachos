@@ -116,8 +116,7 @@ void ExceptionHandler(ExceptionType which)
 			{
 				DEBUG(dbgSys, "[SC] SC_Create.\n");
 				char* filename;
-				int file_creation_result;
-				file_creation_result = -1;
+				int file_creation_result = -1;
 
 				DEBUG(dbgSys, "\tReading virtual address of filename.\n");
 				virtAddr = kernel->machine->ReadRegister(4);
@@ -328,7 +327,7 @@ void ExceptionHandler(ExceptionType which)
 				write_count = SysWrite(sys_buffer, size, fd);
 				
 				DEBUG(dbgSys, "\tSize: " << size << "\n");
-				DEBUG(dbgSys, "\tActual wirtten size: " << write_count << "\n");
+				DEBUG(dbgSys, "\tActual written size: " << write_count << "\n");
 				DEBUG(dbgSys, "\tBuffer value: " << sys_buffer << "\n");
 				
 				kernel->machine->WriteRegister(2, write_count);
@@ -406,7 +405,7 @@ void ExceptionHandler(ExceptionType which)
 				DEBUG(dbgSys, "[SC] SC_Connect.\n");
 				int socketID;
 				int port;
-				char* ip;//"192.123.12.31.3"
+				char* ip;
 				int res;
 
 				socketID = kernel->machine->ReadRegister(4);

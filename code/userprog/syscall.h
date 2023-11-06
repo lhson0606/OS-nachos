@@ -211,7 +211,6 @@ int Disconnect(int socketid);
  * @param port The port to listen on.
  * @return The socket descriptor on success, -1 on failure.
 */
-*/
 int ServerCreate(int port);
 
 /**
