@@ -18,24 +18,40 @@
 /* system call codes -- used by the stubs to tell the kernel which system call
  * is being asked for
  */
-#define SC_Halt		0
-#define SC_Exit		1
-#define SC_Exec		2
-#define SC_Join		3
-#define SC_Create	4
+#define SC_Halt		    0
+#define SC_Exit		    1
+#define SC_Exec		    2
+#define SC_Join		    3
+#define SC_Create	    4
 #define SC_Remove       5
-#define SC_Open		6
-#define SC_Read		7
-#define SC_Write	8
+#define SC_Open		    6
+#define SC_Read		    7
+#define SC_Write	    8
 #define SC_Seek         9
-#define SC_Close	10
+#define SC_Close        10
 #define SC_ThreadFork	11
 #define SC_ThreadYield	12
-#define SC_ExecV	13
+#define SC_ExecV	    13
 #define SC_ThreadExit   14
 #define SC_ThreadJoin   15
 
-#define SC_Add		42
+//command line arguments
+#define SC_GetArgvs         20
+
+//Arithmetic operations
+#define SC_Add		    42
+
+//Console operations
+#define SC_PrintStrn	50
+
+//Socket operations
+#define SC_SocketTCP	60
+#define SC_Connect		61
+#define SC_Send			62
+#define SC_Receive		63
+#define SC_Disconnect	64
+#define SC_ServerCreate    65
+#define SC_ServerListen    66
 
 #ifndef IN_ASM
 
@@ -105,13 +121,18 @@ typedef int OpenFileId;
  * the console device.
  */
 
-#define ConsoleInput	0  
-#define ConsoleOutput	1  
+//#define ConsoleInput 0
+//#define ConsoleOutput 1 
  
 /* Create a Nachos file, with name "name" */
 /* Note: Create does not open the file.   */
 /* Return 1 on success, negative error code on failure */
 int Create(char *name);
+
+/*
+ * Prints a string to the console.
+ */
+int PrintStrn(char* strn);
 
 /* Remove a Nachos file, with name "name" */
 int Remove(char *name);
@@ -119,7 +140,7 @@ int Remove(char *name);
 /* Open the Nachos file "name", and return an "OpenFileId" that can 
  * be used to read and write to the file.
  */
-OpenFileId Open(char *name);
+OpenFileId Open(char *name, int type);
 
 /* Write "size" bytes from "buffer" to the open file. 
  * Return the number of bytes actually read on success.
@@ -145,6 +166,68 @@ int Seek(int position, OpenFileId id);
  */
 int Close(OpenFileId id);
 
+/**
+ * Creates a new socket and returns the socket descriptor.
+ * @return The socket descriptor on success, -1 on failure.
+*/
+int SocketTCP();
+
+/**
+ * Connects to a socket.
+ * @param socketid The socket descriptor.
+ * @param ip The ip address to connect to.
+ * @param port The port to connect to.
+ * @return 0 on success, -1 on failure.
+*/
+int Connect(int socketid, char *ip, int port);
+
+/**
+ * Sends a message to a socket.
+ * @param socketid The socket descriptor.
+ * @param buffer The message to send.
+ * @param len The length of the message.
+ * @return The number of bytes sent on success, -1 on failure.
+*/
+int Send(int socketid, char *buffer, int len);
+
+/**
+ * Receives a message from a socket.
+ * @param socketid The socket descriptor.
+ * @param buffer The buffer to store the message in.
+ * @param len The length of the buffer.
+ * @return The number of bytes received on success, -1 on failure.
+*/
+int Receive(int socketid, char *buffer, int len);
+
+/**
+ * Disconnects from a socket.
+ * @param socketid The socket descriptor.
+ * @return 0 on success, -1 on failure.
+*/
+int Disconnect(int socketid);
+
+/**
+ * Creates a new server socket and returns the socket descriptor.
+ * @param port The port to listen on.
+ * @return The socket descriptor on success, -1 on failure.
+*/
+int ServerCreate(int port);
+
+/**
+ * Listens on a server socket.
+ * @param ss_fd The socket descriptor.
+ * @return 0 on success, -1 on failure.
+*/
+int ServerListen(int ss_fd);
+
+/**
+ * Returns the command line arguments of the current process.
+ * @param argc The number of arguments that user program wants to get.
+ * @param argv The arguments buffer.
+ * @param size The size of an argument buffer.
+ * @return number of arguments on success, -1 on failure.
+*/
+int GetArgvs(int argc, char* argv[], int size);
 
 /* User-level thread operations: Fork and Yield.  To allow multiple
  * threads to run within a user program. 
@@ -172,7 +255,7 @@ int ThreadJoin(ThreadId id);
 /*
  * Deletes current thread and returns ExitCode to every waiting lokal thread.
  */
-void ThreadExit(int ExitCode);	
+void ThreadExit(int ExitCode);
 
 #endif /* IN_ASM */
 

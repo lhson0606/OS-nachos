@@ -53,6 +53,22 @@ Kernel::Kernel(int argc, char **argv)
 	    ASSERT(i + 1 < argc);
 	    consoleOut = argv[i + 1];
 	    i++;
+#ifdef __USER_ARGS__
+    //it's our argvs after flag "-argvs"
+    } else if(strcmp(argv[i], "-argvs") == 0) {
+        ASSERT(i + 1 < argc);
+        
+        while(i + 1 < argc) {
+            
+            ASSERT(argv[i + 1][0] != 0);
+            if(argv[i + 1][0] == '-') break;
+
+            userArgs[userArgc] = argv[i + 1];
+            i++;
+            userArgc++;
+            ASSERT(userArgc < MAX_ARG_NUM);
+        }
+#endif
 #ifndef FILESYS_STUB
 	} else if (strcmp(argv[i], "-f") == 0) {
 	    formatFlag = TRUE;

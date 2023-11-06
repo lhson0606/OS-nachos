@@ -112,7 +112,7 @@ ifeq ($(hosttype),unknown)
 PROGRAMS = unknownhost
 else
 # change this if you create a new test program!
-PROGRAMS = add halt shell matmult sort segments
+PROGRAMS = add halt shell matmult sort segments createfile nwtest echoclient server cat delete concatenate fileclient mytest e2et_file e2et_client e2et_server
 endif
 
 all: $(PROGRAMS)
@@ -156,6 +156,78 @@ matmult.o: matmult.c
 matmult: matmult.o start.o
 	$(LD) $(LDFLAGS) start.o matmult.o -o matmult.coff
 	$(COFF2NOFF) matmult.coff matmult
+
+createfile.o: createfile.c
+	$(CC) $(CFLAGS) -c createfile.c
+createfile: createfile.o start.o
+	$(LD) $(LDFLAGS) start.o createfile.o -o createfile.coff
+	$(COFF2NOFF) createfile.coff createfile
+
+cat.o: cat.c
+	$(CC) $(CFLAGS) -c cat.c
+cat: cat.o start.o
+	$(LD) $(LDFLAGS) start.o cat.o -o cat.coff
+	$(COFF2NOFF) cat.coff cat
+
+delete.o: delete.c
+	$(CC) $(CFLAGS) -c delete.c
+delete: delete.o start.o
+	$(LD) $(LDFLAGS) start.o delete.o -o delete.coff
+	$(COFF2NOFF) delete.coff delete
+
+concatenate.o: concatenate.c
+	$(CC) $(CFLAGS) -c concatenate.c
+concatenate: concatenate.o start.o
+	$(LD) $(LDFLAGS) start.o concatenate.o -o concatenate.coff
+	$(COFF2NOFF) concatenate.coff concatenate
+
+fileclient.o: fileclient.c
+	$(CC) $(CFLAGS) -c fileclient.c
+fileclient: fileclient.o start.o
+	$(LD) $(LDFLAGS) start.o fileclient.o -o fileclient.coff
+	$(COFF2NOFF) fileclient.coff fileclient
+
+mytest.o: mytest.c
+	$(CC) $(CFLAGS) -c mytest.c
+mytest: mytest.o start.o
+	$(LD) $(LDFLAGS) start.o mytest.o -o mytest.coff
+	$(COFF2NOFF) mytest.coff mytest
+
+nwtest.o: nwtest.c
+	$(CC) $(CFLAGS) -c nwtest.c
+nwtest: nwtest.o start.o
+	$(LD) $(LDFLAGS) start.o nwtest.o -o nwtest.coff
+	$(COFF2NOFF) nwtest.coff nwtest
+
+echoclient.o: echoclient.c
+	$(CC) $(CFLAGS) -c echoclient.c
+echoclient: echoclient.o start.o
+	$(LD) $(LDFLAGS) start.o echoclient.o -o echoclient.coff
+	$(COFF2NOFF) echoclient.coff echoclient
+
+server.o: server.c
+	$(CC) $(CFLAGS) -c server.c
+server: server.o start.o
+	$(LD) $(LDFLAGS) start.o server.o -o server.coff
+	$(COFF2NOFF) server.coff server
+
+e2et_file.o: e2et_file.c
+	$(CC) $(CFLAGS) -c e2et_file.c
+e2et_file: e2et_file.o start.o
+	$(LD) $(LDFLAGS) start.o e2et_file.o -o e2et_file.coff
+	$(COFF2NOFF) e2et_file.coff e2et_file
+
+e2et_client.o: e2et_client.c
+	$(CC) $(CFLAGS) -c e2et_client.c
+e2et_client: e2et_client.o start.o
+	$(LD) $(LDFLAGS) start.o e2et_client.o -o e2et_client.coff
+	$(COFF2NOFF) e2et_client.coff e2et_client
+
+e2et_server.o: e2et_server.c
+	$(CC) $(CFLAGS) -c e2et_server.c
+e2et_server: e2et_server.o start.o
+	$(LD) $(LDFLAGS) start.o e2et_server.o -o e2et_server.coff
+	$(COFF2NOFF) e2et_server.coff e2et_server
 
 clean:
 	$(RM) -f *.o *.ii
