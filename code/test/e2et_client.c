@@ -19,7 +19,7 @@ int main(){
     int i = 0;
     //*****************************************************************************************//
     //test SocketTCP()
-    Write("\n\n****Socket creation test****\n", MaxBufferSize, ConsoleOutput);
+    //Write("\n\n****Socket creation test****\n", MaxBufferSize, ConsoleOutput);
     create_result = SocketTCP();
     if(create_result != -1){
         PrintStrn("\tCan create socket: \r\t\t\t\t\t\t\t\t\t\tpassed\n");
@@ -39,6 +39,12 @@ int main(){
         PrintStrn("\tCan connect to server:  \r\t\t\t\t\t\t\t\t\t\tfailed\n");
     }
 
+    //test Write()
+    write_result = Send(create_result, random_content, MaxBufferSize);
+    //test Read()
+    read_result = Receive(create_result, read_buffer, MaxBufferSize);
+    read_buffer[read_result] = '\0';
+    PrintStrn(read_buffer);
 
     Halt();
 }

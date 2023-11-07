@@ -12,7 +12,6 @@ int main(){
     create_result = ServerCreate(8888);
     //*****************************************************************************************//
     PrintStrn("\n\n****Socket creation test****\n");
-    create_result = SocketTCP();
     if(create_result != -1){
         PrintStrn("\tCan create server socket: \r\t\t\t\t\t\t\t\t\t\tpassed\n");
     }
