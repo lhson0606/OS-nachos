@@ -4,7 +4,7 @@
 #define MaxStrnLength 255
 
 int main(int argc, char **argv){
-<<<<<<< HEAD
+
     int fd_a, fd_b;
     int fd_concatenate_result;
 
@@ -67,9 +67,7 @@ int main(int argc, char **argv){
     Write(buffer, read_result, fd_concatenate_result);
 
     PrintStrn("\nConcatenate file a.txt and b.txt to concatenate.txt successfully\n");
-=======
-    //write concatenate program here
->>>>>>> master
+
 
     Halt();
 }

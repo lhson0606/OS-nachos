@@ -16,12 +16,12 @@ int main(int argc, char **argv){
     }
 
 
-    openRes = Open(argvs[0], 0);
-
-    if ( openRes == -1){
-        PrintStrn("File not exists\n");
-        Halt();
-    }
+//    openRes = Open(argvs[0], 0);
+//
+//    if ( openRes == -1){
+//        PrintStrn("File not exists\n");
+//        Halt();
+//    }
 
     delete_result = Remove(argvs[0]);
 
