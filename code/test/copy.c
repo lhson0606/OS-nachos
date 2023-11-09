@@ -9,33 +9,37 @@ int main(int argc, char **argv){
     int desfileID;
     int read_result;
     char argvs[10][100];
-    int result = -1;
-    result = GetArgvs(2, argvs, 100);
-    
+    int argsRes = -1;
+    argsRes = GetArgvs(2, argvs, 100);
+
+    if (argsRes == -1 ) {
+        PrintStrn("Fail to read arguments!!\n");
+        Halt();
+    }
     fileID = Open(argvs[0], 0);
     desfileID = Open(argvs[1],1);
 
-    if (desfileID == -1){
+    if (desfileID == -1) {
         PrintStrn("Can not open destination file\n");
         Halt();
-    }else{
+    } else{
         PrintStrn("Destination file opened successfully\n");
     }
 
-    if (fileID == -1){
+    if (fileID == -1) {
         PrintStrn("Can not open source file\n");
         Halt();
-    }else{
+    } else {
         PrintStrn("Source file opened successfully\n");
     }
 
     read_result = Read(buffer, MaxStrnLength, fileID);
     buffer[read_result] = '\0';
 
-    if (read_result == -1){
+    if (read_result == -1) {
         PrintStrn("Can not read file\n");
         Halt();
-    }else{
+    } else {
         PrintStrn("File copied successfully\n");
         Write(buffer,read_result,desfileID);
     }

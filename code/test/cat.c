@@ -8,9 +8,9 @@ int main(int argc, char **argv){
     int fileID = -1;
     int open_result;
     int read_result;
-    char argvs[10][MaxStrnLength];
+    char argvs[2][100];
     int result = -1;
-    result = GetArgvs(1, argvs, MaxStrnLength);
+    result = GetArgvs(2, argvs, 100);
 
     fileID = Open(argvs[0], 1);
 
@@ -27,9 +27,11 @@ int main(int argc, char **argv){
     if (read_result == -1){
         PrintStrn("Can not read file\n");
         Halt();
-    }else{
+    } else {
         PrintStrn("Read file successfully\n");
+        PrintStrn("File content: \n");
         PrintStrn(buffer);
+        PrintStrn("\n");
     }
 
     Halt();

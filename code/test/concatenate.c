@@ -6,18 +6,25 @@
 int main(int argc, char **argv){
     int fd_a, fd_b;
     int fd_concatenate_result;
+
     char filename_concatenate[] = "concatenate.txt";
+
     int read_result;
+
     char buffer[MaxStrnLength];
     char argvs[10][100];
-    int result = -1;
-    result = GetArgvs(2, argvs, 100);
+    int argsRes = -1;
+    argsRes = GetArgvs(2, argvs, 100);
 
+    if (argsRes == -1 ) {
+        PrintStrn("Fail to read arguments!!\n");
+        Halt();
+    }
 
     Create(filename_concatenate);
     fd_concatenate_result = Open(filename_concatenate, 1);
 
-    if(fd_concatenate_result == -1){
+    if ( fd_concatenate_result == -1 ) {
         PrintStrn("Can not open file concatenate.txt\n");
         Halt();
     }

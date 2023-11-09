@@ -6,8 +6,22 @@
 int main(int argc, char **argv){
     int delete_result;
     char argvs[2][MaxStrnLength];
-    int result = -1;
-    result = GetArgvs(1, argvs, MaxStrnLength);
+    int argsRes = -1;
+    int openRes = - 1;
+    argsRes = GetArgvs(1, argvs, MaxStrnLength);
+
+    if (argsRes == -1 ) {
+        PrintStrn("Fail to read arguments!!\n");
+        Halt();
+    }
+
+
+    openRes = Open(argvs[0], 0);
+
+    if ( openRes == -1){
+        PrintStrn("File not exists\n");
+        Halt();
+    }
 
     delete_result = Remove(argvs[0]);
 

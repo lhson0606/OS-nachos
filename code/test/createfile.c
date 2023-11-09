@@ -7,9 +7,9 @@ int main(int argc, char **argv){
     //create file
     int create_result = -1;
     char fileName[MaxFileNameLength];
-    char argvs[10][100];
+    char argvs[2][100];
     int argsRes = -1;
-    argsRes = GetArgvs(2, argvs, 100);
+    argsRes = GetArgvs(1, argvs, 100);
 
     if (argsRes == -1 ){
         PrintStrn("Fail to read arguments!!");
@@ -18,9 +18,9 @@ int main(int argc, char **argv){
 
     create_result = Create(argvs[0]);
 
-    if(create_result == -1){
+    if (create_result == -1){
         PrintStrn("Create file fail\n");
-    }else{
+    } else {
         PrintStrn("Create file success\n");
     }
 
