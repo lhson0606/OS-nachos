@@ -7,11 +7,12 @@ int main(int argc, char **argv){
     int fd_a, fd_b;
     int fd_concatenate_result;
     char filename_concatenate[] = "concatenate.txt";
-    char filename_a[] = "a.txt";
-    char filename_b[] = "b.txt";
-    int open_result;
     int read_result;
     char buffer[MaxStrnLength];
+    char argvs[10][100];
+    int result = -1;
+    result = GetArgvs(2, argvs, 100);
+
 
     Create(filename_concatenate);
     fd_concatenate_result = Open(filename_concatenate, 1);
@@ -21,14 +22,14 @@ int main(int argc, char **argv){
         Halt();
     }
 
-    fd_a = Open(filename_a, 1);
+    fd_a = Open(argvs[0], 1);
 
     if (fd_a == -1){
         PrintStrn("Can not open file a.txt\n");
         Halt();
     }
 
-    fd_b = Open(filename_b, 1);
+    fd_b = Open(argvs[1], 1);
 
     if (fd_b == -1){
         PrintStrn("Can not open file b.txt\n");

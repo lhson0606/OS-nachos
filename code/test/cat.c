@@ -4,13 +4,15 @@
 #define MaxStrnLength 255
 
 int main(int argc, char **argv){
-    char filename[] = "hello.txt";
     char buffer[MaxStrnLength];
-    int fileID;
+    int fileID = -1;
     int open_result;
     int read_result;
+    char argvs[10][MaxStrnLength];
+    int result = -1;
+    result = GetArgvs(1, argvs, MaxStrnLength);
 
-    fileID = Open(filename, 0);
+    fileID = Open(argvs[0], 1);
 
     if (fileID == -1){
         PrintStrn("Can not open file\n");

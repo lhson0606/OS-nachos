@@ -4,10 +4,12 @@
 #define MaxStrnLength 255
 
 int main(int argc, char **argv){
-    char filename[] = "hello.c";
     int delete_result;
+    char argvs[2][MaxStrnLength];
+    int result = -1;
+    result = GetArgvs(1, argvs, MaxStrnLength);
 
-    delete_result = Remove(filename);
+    delete_result = Remove(argvs[0]);
 
     if (delete_result == -1){
         PrintStrn("Can not delete file\n");

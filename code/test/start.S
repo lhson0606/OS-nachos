@@ -218,9 +218,8 @@ GetArgvs:
 	j	$31
 	.end GetArgvs
 
-
-        .globl ThreadFork
-        .ent    ThreadFork
+    .globl ThreadFork
+    .ent    ThreadFork
 ThreadFork:
         addiu $2,$0,SC_ThreadFork
         syscall

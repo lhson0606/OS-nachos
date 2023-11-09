@@ -2,6 +2,7 @@
 #include "copyright.h"
 
 #define MaxBufferSize 1024
+#define MaxStrnLength 255
 
 int main(){
     int result = -1;
@@ -14,8 +15,10 @@ int main(){
     int write_result = -1;
     int create_result = -1;
     char buffer[1024];
-    char file_a[] = "a.txt";
-    char file_b[] = "b.txt";
+
+    char argvs[2][MaxStrnLength];
+    int res = -1;
+    res = GetArgvs(2, argvs, MaxStrnLength);
 
     /*---------------------------------------------------------*/
     socketID = SocketTCP();
@@ -36,7 +39,7 @@ int main(){
         Halt();
     }
 
-    aID = Open(file_a, 1);
+    aID = Open(argvs[0], 1);
 
     if(aID != -1){
         PrintStrn("Open file a.txt success\n");
@@ -80,7 +83,7 @@ int main(){
     PrintStrn(buffer);
     PrintStrn("\n");
 
-    create_result = Create(file_b);
+    create_result = Create(argvs[1]);
 
     if(create_result != -1){
         PrintStrn("Create file b.txt success\n");
@@ -89,7 +92,7 @@ int main(){
         Halt();
     }
 
-    bID = Open(file_b, 1);
+    bID = Open(argvs[1], 1);
 
     if(bID != -1){
         PrintStrn("Open file b.txt success\n");
