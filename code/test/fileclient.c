@@ -114,8 +114,8 @@ int main(){
     //close all
     Close(aID);
     Close(bID);
-    Close(socketID);      
-
+    Close(socketID);
+    
     //will not reach here
     Halt();
 }

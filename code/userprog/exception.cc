@@ -119,13 +119,12 @@ void ExceptionHandler(ExceptionType which)
 			{
 				DEBUG(dbgSys, "[SC] SC_Create.\n");
 				char* filename;
-				int file_creation_result;
-				file_creation_result = -1;
+				int file_creation_result = -1;
 
 				DEBUG(dbgSys, "\tReading virtual address of filename.\n");
 				virtAddr = kernel->machine->ReadRegister(4);
 				filename = User2System(virtAddr, FILE_NAME_MAX_LEN);
-
+				
 				//extra check
 				if(!filename){
 					DEBUG(dbgSys, "\tFatal: System memory drained\n");
