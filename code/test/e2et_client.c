@@ -1,7 +1,7 @@
 #include "syscall.h"
 #include "copyright.h"
 
-#define MaxBufferSize 1024
+#define MaxBufferSize 100
 #define ConsoleInput 0
 #define ConsoleOutput 1
 
@@ -18,14 +18,17 @@ int main(){
     char read_buffer[MaxBufferSize];
     int i = 0;
     //*****************************************************************************************//
+    Write("\n\n****Socket creation test****\n", MaxBufferSize, ConsoleOutput);
     //test SocketTCP()
-    //Write("\n\n****Socket creation test****\n", MaxBufferSize, ConsoleOutput);
+    
     create_result = SocketTCP();
     if(create_result != -1){
-        PrintStrn("\tCan create socket: \r\t\t\t\t\t\t\t\t\t\tpassed\n");
+        //PrintStrn("\tCan create socket: \r\t\t\t\t\t\t\t\t\t\tpassed\n");
+        Write("\tCan create socket: \r\t\t\t\t\t\t\t\t\t\tpassed\n", MaxBufferSize, ConsoleOutput);
     }
     else{
-       PrintStrn("\tCan create socket: \r\t\t\t\t\t\t\t\t\t\tfailed\n");
+       //PrintStrn("\tCan create socket: \r\t\t\t\t\t\t\t\t\t\tfailed\n");
+       Write("\tCan create socket: \r\t\t\t\t\t\t\t\t\t\tfailed\n", MaxBufferSize, ConsoleOutput);
     }
 
     //test Connect()

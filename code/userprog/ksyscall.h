@@ -26,6 +26,25 @@ void SysHalt()
   kernel->interrupt->Halt();
 }
 
+/**
+ * Print a string on the console
+ * @param string The null-terminated string to print
+ * @see ConsoleDriver::PutString
+ */
+void SysPrintString(char *string)
+{
+  while(*string != '\0'){
+    kernel->synchConsoleOut->PutChar(*string);
+    string++;
+  }
+  // kernel->GetConsole()->PutString(string);
+}
+
+void exitWithError(char* msg){
+  SysPrintString(msg);
+  kernel->interrupt->Halt();
+}
+
 int SysCreate(char *filename)
 {
   int res;
@@ -47,20 +66,6 @@ int SysCreate(char *filename)
 int SysAdd(int op1, int op2)
 {
   return op1 + op2;
-}
-
-/**
- * Print a string on the console
- * @param string The null-terminated string to print
- * @see ConsoleDriver::PutString
- */
-void SysPrintString(char *string)
-{
-  while(*string != '\0'){
-    kernel->synchConsoleOut->PutChar(*string);
-    string++;
-  }
-  // kernel->GetConsole()->PutString(string);
 }
 
 /**
@@ -169,6 +174,10 @@ int consoleRead(char *buffer, int size)
 */
 int SysRead(char *buffer, int size, OpenFileID fd)
 {
+  //check if size > MAX_ALlOWED_SIZE
+  if(size > MAX_ALLOWED_BUFFER_SIZE){
+    exitWithError("Buffer size is too large");
+  }
   // check if fd is STDIN
   if (fd == STDIN)
   {
@@ -226,9 +235,15 @@ int consoleWrite(char* buffer, int size){
  * @return The number of characters written, -1 if an error occured
 */
 int SysWrite(char* buffer, int size, OpenFileID fd){
+  DEBUG(dbgFile, "\n\tSysWrite received buffer: " << buffer << " with size " << size);
+  //check if size > MAX_ALlOWED_SIZE
+  if(size > MAX_ALLOWED_BUFFER_SIZE){
+    exitWithError("Buffer size is too large");
+  }
   // check if fd is STDOUT
   if (fd == STDOUT)
   {
+
     return consoleWrite(buffer, size);
   }
 
@@ -255,11 +270,6 @@ int SysWrite(char* buffer, int size, OpenFileID fd){
   DEBUG(dbgFile, "\n\tWrote " << res << " characters to fd " << fd);
   DEBUG(dbgFile, "\n\tValue: " << buffer);
   return res;
-}
-
-void exitWithError(char* msg){
-  SysPrintString(msg);
-  kernel->interrupt->Halt();
 }
 
 
@@ -359,6 +369,11 @@ int SysConnect(int fd, char* ip, int port){
  * @return The number of bytes sent, -1 if an error occured
 */
 int SysSend(int fd, char* buffer, int len){
+  //check if size > MAX_ALlOWED_SIZE
+  if(len > MAX_ALLOWED_BUFFER_SIZE){
+    exitWithError("Buffer size is too large");
+  }
+  
   Socket* socket = (Socket*) FileDescriptorTable::getInstance()->getStream(fd);
 
   if(socket == NULL){
@@ -371,6 +386,10 @@ int SysSend(int fd, char* buffer, int len){
 }
 
 int SysReceive(int socketID, char* buffer, int size){
+  //check if size > MAX_ALlOWED_SIZE
+  if(size > MAX_ALLOWED_BUFFER_SIZE){
+    exitWithError("Buffer size is too large");
+  }
   Socket* socket = (Socket*) FileDescriptorTable::getInstance()->getStream(socketID);
 
   if(socket == NULL){

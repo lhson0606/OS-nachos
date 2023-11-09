@@ -2,6 +2,7 @@
 #define _OPENSTREAM_H_
 
 #define MAX_FILE_NAME_LENGTH 32
+#define MAX_ALLOWED_BUFFER_SIZE 64
 
 class OpenStream
 {
