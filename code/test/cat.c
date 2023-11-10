@@ -14,7 +14,7 @@ int main(int argc, char **argv){
     PrintStrn("Received file path: ");
     PrintStrn(argvs[0]);
     PrintStrn("\n");
-    fileID = Open(argvs[0], 1);
+    fileID = Open(argvs[0], RO);
 
     if (fileID == -1){
         PrintStrn("Can not open file\n");

@@ -22,21 +22,21 @@ int main(int argc, char **argv){
     }
 
     Create(filename_concatenate);
-    fd_concatenate_result = Open(filename_concatenate, 1);
+    fd_concatenate_result = Open(filename_concatenate, RW);
 
     if ( fd_concatenate_result == -1 ) {
         PrintStrn("Can not open file concatenate.txt\n");
         Halt();
     }
 
-    fd_a = Open(argvs[0], 1);
+    fd_a = Open(argvs[0], RW);
 
     if (fd_a == -1){
         PrintStrn("Can not open file a.txt\n");
         Halt();
     }
 
-    fd_b = Open(argvs[1], 1);
+    fd_b = Open(argvs[1], RW);
 
     if (fd_b == -1){
         PrintStrn("Can not open file ");

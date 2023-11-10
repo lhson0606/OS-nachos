@@ -1,5 +1,6 @@
 #include "syscall.h"
 #include "copyright.h"
+#include "user_utils.h"
 
 void memeset(char* buffer, int size, char value){
     int i = 0;
@@ -15,7 +16,7 @@ void doTest(){
     char* msg = "Hello from client";
     int send_result = -1;
     int read_result = -1;
-    char buffer[255];
+    char buffer[MaxBufferLength];
     /*---------------------------------------------------------*/
     socketID = SocketTCP();
 
@@ -40,26 +41,59 @@ void doTest(){
         Halt();
     }
     /*---------------------------------------------------------*/
-    send_result = Send(socketID, msg, 17);
+    send_result = Send(socketID, msg, MaxBufferLength);
 
     if(send_result != -1){
-        PrintStrn("Send success\n");
+        PrintStrn("Send success: ");
+        PrintStrn(msg);
+        PrintStrn("\n");
     }else{
         PrintStrn("Send fail\n");
         Halt();
     }
 
     /*---------------------------------------------------------*/
-    memeset(buffer, 255, 0);
+    memeset(buffer, MaxBufferLength, 0);
     
-    read_result = Receive(socketID, buffer, 17);
+    read_result = Receive(socketID, buffer, MaxBufferLength);
 
     if(read_result != -1){
-        PrintStrn("Receive success\n");
+        PrintStrn("Receive success: ");
         PrintStrn(buffer);
+        PrintStrn("\n");
     }else{
         PrintStrn("Receive fail\n");
         Halt();
+    }
+}
+
+void printIndex(int index){
+    switch(index){
+        case 0:
+        {
+            PrintStrn("0");
+            break;
+        }
+        case 1:
+        {
+            PrintStrn("1");
+            break;
+        }
+        case 2:
+        {
+            PrintStrn("2");
+            break;
+        }
+        case 3:
+        {
+            PrintStrn("3");
+            break;
+        }
+        case 4:
+        {
+            PrintStrn("4");
+            break;
+        }
     }
 }
 
@@ -67,9 +101,11 @@ int main(){
     int i = 0;
 
     for(i = 0; i<4; i++){
+        PrintStrn("\n\n****Socket [");
+        printIndex(i);
+        PrintStrn("]****\n");
         doTest();
-    }
-    
+    }    
 
     Halt();
 }

@@ -23,8 +23,8 @@ int main(int argc, char **argv){
     PrintStrn(argvs[1]);
     PrintStrn("\n");
 
-    fileID = Open(argvs[0], 0);
-    desfileID = Open(argvs[1],1);
+    fileID = Open(argvs[0], RO);
+    desfileID = Open(argvs[1], RW);
 
     if (desfileID == -1) {
         PrintStrn("Can not open destination file\n");
