@@ -1,17 +1,19 @@
 #include "syscall.h"
 #include "copyright.h"
-#define MaxFileLength 32
-#define MaxStrnLength 255
+#include "user_utils.h"
 
 int main(int argc, char **argv){
     char buffer[MaxStrnLength];
     int fileID = -1;
     int open_result;
     int read_result;
-    char argvs[2][100];
+    char argvs[MaxArgvs][MaxArgvLength];
     int result = -1;
-    result = GetArgvs(2, argvs, 100);
+    result = GetArgvs(2, argvs, MaxArgvLength);
 
+    PrintStrn("Received file path: ");
+    PrintStrn(argvs[0]);
+    PrintStrn("\n");
     fileID = Open(argvs[0], 1);
 
     if (fileID == -1){

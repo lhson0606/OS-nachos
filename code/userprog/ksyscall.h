@@ -256,17 +256,10 @@ int SysWrite(char* buffer, int size, OpenFileID fd){
   if (file == NULL)
   {
     res = -1;
-<<<<<<< HEAD
-      DEBUG(dbgFile, "case 2 ");
-  }else if(!file->canWrite()){
-    res = -1;
-      DEBUG(dbgFile, "case 2 ");
-=======
     DEBUG(dbgFile, "\n\tCannot write to file because it's not opened" << fd);
   }else if(!file->canWrite()){
     res = -1;
     DEBUG(dbgFile, "\n\tCannot write to file because it's opened in readonly mode" << fd);
->>>>>>> master
   }
   else
   {

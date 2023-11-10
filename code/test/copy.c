@@ -1,21 +1,28 @@
 #include "syscall.h"
 #include "copyright.h"
-#define MaxFileLength 32
-#define MaxStrnLength 255
+#include "user_utils.h"
 
 int main(int argc, char **argv){
     char buffer[MaxStrnLength];
     int fileID;
     int desfileID;
     int read_result;
-    char argvs[10][100];
+    char argvs[MaxArgvs][MaxArgvLength];
     int argsRes = -1;
-    argsRes = GetArgvs(2, argvs, 100);
+    argsRes = GetArgvs(2, argvs, MaxArgvLength);
 
     if (argsRes == -1 ) {
         PrintStrn("Fail to read arguments!!\n");
         Halt();
     }
+
+    PrintStrn("Received source file path: ");
+    PrintStrn(argvs[0]);
+    PrintStrn("\n");
+    PrintStrn("Received destination file path: ");
+    PrintStrn(argvs[1]);
+    PrintStrn("\n");
+
     fileID = Open(argvs[0], 0);
     desfileID = Open(argvs[1],1);
 
@@ -33,7 +40,7 @@ int main(int argc, char **argv){
         PrintStrn("Source file opened successfully\n");
     }
 
-    read_result = Read(buffer, MaxStrnLength, fileID);
+    read_result = Read(buffer, MaxBufferLength, fileID);
     buffer[read_result] = '\0';
 
     if (read_result == -1) {

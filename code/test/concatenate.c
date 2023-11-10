@@ -1,7 +1,6 @@
 #include "syscall.h"
 #include "copyright.h"
-#define MaxFileLength 32
-#define MaxStrnLength 255
+#include "user_utils.h"
 
 int main(int argc, char **argv){
 
@@ -12,10 +11,10 @@ int main(int argc, char **argv){
 
     int read_result;
 
-    char buffer[MaxStrnLength];
-    char argvs[10][100];
+    char buffer[MaxBufferLength];
+    char argvs[MaxArgvs][MaxArgvLength];
     int argsRes = -1;
-    argsRes = GetArgvs(2, argvs, 100);
+    argsRes = GetArgvs(2, argvs, MaxArgvLength);
 
     if (argsRes == -1 ) {
         PrintStrn("Fail to read arguments!!\n");
@@ -40,34 +39,45 @@ int main(int argc, char **argv){
     fd_b = Open(argvs[1], 1);
 
     if (fd_b == -1){
-        PrintStrn("Can not open file b.txt\n");
+        PrintStrn("Can not open file ");
+        PrintStrn(argvs[1]);
+        PrintStrn("\n");
         Halt();
     }
 
-    read_result = Read(buffer, MaxStrnLength, fd_a);
+    read_result = Read(buffer, MaxBufferLength, fd_a);
 
     if(read_result == -1){
-        PrintStrn("Can not read file a.txt\n");
+        PrintStrn("Can not read file \n");
+        PrintStrn(argvs[0]);
+        PrintStrn("\n");
         Halt();
     }
 
-    PrintStrn("\nContent of a.txt:\n");
+    PrintStrn("\nContent of ");
+    PrintStrn(argvs[0]);
+    PrintStrn(":\n");
     PrintStrn(buffer);
     Write(buffer, read_result, fd_concatenate_result);
 
-    read_result = Read(buffer, MaxStrnLength, fd_b);
+    read_result = Read(buffer, MaxBufferLength, fd_b);
 
     if(read_result == -1){
         PrintStrn("Can not read file b.txt\n");
         Halt();
     }
 
-    PrintStrn("\nContent of b.txt:\n");
+    PrintStrn("\nContent of ");
+    PrintStrn(argvs[1]);
+    PrintStrn(":\n");
     PrintStrn(buffer);
     Write(buffer, read_result, fd_concatenate_result);
-
-    PrintStrn("\nConcatenate file a.txt and b.txt to concatenate.txt successfully\n");
-
+    
+    PrintStrn("\nConcatenate file ");
+    PrintStrn(argvs[0]);
+    PrintStrn(" and ");
+    PrintStrn(argvs[1]);
+    PrintStrn(" to \"concatenate.txt\" successfully\n");
 
     Halt();
 }

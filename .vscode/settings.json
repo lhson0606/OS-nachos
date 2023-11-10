@@ -14,6 +14,7 @@
         "initializer_list": "cpp",
         "string_view": "cpp",
         "utility": "cpp",
-        "socket.h": "c"
+        "socket.h": "c",
+        "user_utils.h": "c"
     },
 }
