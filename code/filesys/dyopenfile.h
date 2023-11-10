@@ -61,7 +61,7 @@ public:
         if(open_mode == RO){
             return -1;
         }
-
+        DEBUG(dbgFile,"Buffer"<<buffer <<" "<<size );
         int write_size = openfile->WriteAt(buffer, size, write_pos);
 
         if(write_size == -1){

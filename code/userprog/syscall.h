@@ -171,7 +171,6 @@ int Close(OpenFileId id);
  * @return The socket descriptor on success, -1 on failure.
 */
 int SocketTCP();
-
 /**
  * Connects to a socket.
  * @param socketid The socket descriptor.

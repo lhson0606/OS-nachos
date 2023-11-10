@@ -25,6 +25,8 @@
 #include "main.h"
 #include "syscall.h"
 #include "ksyscall.h"
+
+#define MaxFileLength 255
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
@@ -58,6 +60,7 @@
 // Start of constants =================================================
 const int MAX_INT = 2147483647;
 const int STRING_MAX_LEN = MAX_INT;
+const int MAX_STRING_LEN = 255;
 const int FILE_NAME_MAX_LEN = 32;
 // End of constants ====================================================
 /**
@@ -140,7 +143,6 @@ void ExceptionHandler(ExceptionType which)
 				ASSERTNOTREACHED();
 				break;
 			}
-
 			case SC_GetArgvs:
 			{
 				DEBUG(dbgSys, "[SC] SC_GetArgvs.\n");
@@ -327,7 +329,7 @@ void ExceptionHandler(ExceptionType which)
 				write_count = SysWrite(sys_buffer, size, fd);
 				
 				DEBUG(dbgSys, "\tSize: " << size << "\n");
-				DEBUG(dbgSys, "\tActual written size: " << write_count << "\n");
+				DEBUG(dbgSys, "\tActual wirtten size: " << write_count << "\n");
 				DEBUG(dbgSys, "\tBuffer value: " << sys_buffer << "\n");
 				
 				kernel->machine->WriteRegister(2, write_count);
@@ -405,7 +407,7 @@ void ExceptionHandler(ExceptionType which)
 				DEBUG(dbgSys, "[SC] SC_Connect.\n");
 				int socketID;
 				int port;
-				char* ip;
+				char* ip;//"192.123.12.31.3"
 				int res;
 
 				socketID = kernel->machine->ReadRegister(4);
@@ -528,11 +530,12 @@ void ExceptionHandler(ExceptionType which)
 			case SC_PrintStrn:
 			{
 				DEBUG(dbgSys, "[SC] SC_PrintStrn.\n");
+
 				char* strn;
 
 				virtAddr = kernel->machine->ReadRegister(4);
 				strn = User2System(virtAddr, STRING_MAX_LEN);
-
+                DEBUG(dbgSys, "\tValue:"<<strn);
 				//extra check
 				if(!strn){
 					DEBUG(dbgSys, "\tFatal: System memory drained\n");
