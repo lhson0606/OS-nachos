@@ -8,7 +8,7 @@
 #define MaxArgvLength 64
 #define RO 0
 #define RW 1
-#define ConsoleRead 0
-#define ConsoleWrite 1
+#define ConsoleInput 0
+#define ConsoleOutput 1
 
 #endif // __USER_UTILS_H__
