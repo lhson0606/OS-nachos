@@ -1,10 +1,11 @@
 #ifndef _PTABLE_H_
 #define _PTABLE_H_
 
-#define MAX_PROCESS 10
-
 #include "pcb.h"
+
 #include "bitmap.h"
+
+#define MAX_PROCESS 10
 
 class PTable
 { 
