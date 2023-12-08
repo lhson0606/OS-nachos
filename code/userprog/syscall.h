@@ -121,6 +121,12 @@ typedef int OpenFileId;
  * the console device.
  */
 
+int CreateSemaphore(char* name, int semval);
+
+int Wait(char *name);
+
+int Signal(char *name);
+
 //#define ConsoleInput 0
 //#define ConsoleOutput 1 
  

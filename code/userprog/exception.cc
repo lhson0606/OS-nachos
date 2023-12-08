@@ -113,8 +113,7 @@ void ExceptionHandler(ExceptionType which)
 
 				ASSERTNOTREACHED();
 				break;	
-			}				
-
+			}
 			case SC_Create:
 			{
 				DEBUG(dbgSys, "[SC] SC_Create.\n");
@@ -187,8 +186,7 @@ void ExceptionHandler(ExceptionType which)
 				ASSERTNOTREACHED();
 				break;
 
-			}	
-
+			}
 			case SC_Open:
 			{
 				DEBUG(dbgSys, "[SC] SC_Open.\n");
@@ -235,7 +233,6 @@ void ExceptionHandler(ExceptionType which)
 				ASSERTNOTREACHED();
 				break;
 			}
-
 			case SC_Close:
 			{
 				DEBUG(dbgSys, "[SC] SC_Close.\n");
@@ -260,8 +257,7 @@ void ExceptionHandler(ExceptionType which)
 				return;
 				ASSERTNOTREACHED();
 				break;
-			}	
-
+			}
 			case SC_Read:
 			{
 				DEBUG(dbgSys, "[SC] SC_Read.\n");
@@ -300,7 +296,6 @@ void ExceptionHandler(ExceptionType which)
 				ASSERTNOTREACHED();
 				break;
 			}
-
 			case SC_Write:
 			{
 				DEBUG(dbgSys, "[SC] SC_Write.\n");
@@ -340,7 +335,6 @@ void ExceptionHandler(ExceptionType which)
 				ASSERTNOTREACHED();
 				break;
 			}
-
 			case SC_Seek:
 			{
 				DEBUG(dbgSys, "[SC] SC_Seek.\n");
@@ -365,7 +359,6 @@ void ExceptionHandler(ExceptionType which)
 				ASSERTNOTREACHED();
 				break;
 			}
-
 			case SC_Remove:
 			{
 				DEBUG(dbgSys, "[SC] SC_Remove.\n");
@@ -388,7 +381,6 @@ void ExceptionHandler(ExceptionType which)
 				ASSERTNOTREACHED();
 				break;
 			}
-
 			case SC_SocketTCP:
 			{
 				DEBUG(dbgSys, "[SC] SC_SocketTCP.\n");
@@ -401,7 +393,6 @@ void ExceptionHandler(ExceptionType which)
 				ASSERTNOTREACHED();
 				break;
 			}
-
 			case SC_Connect:
 			{
 				DEBUG(dbgSys, "[SC] SC_Connect.\n");
@@ -427,7 +418,6 @@ void ExceptionHandler(ExceptionType which)
 				return;
 				ASSERTNOTREACHED();
 			}
-
 			case SC_Send:
 			{
 				DEBUG(dbgSys, "[SC] SC_Send.\n");
@@ -455,7 +445,6 @@ void ExceptionHandler(ExceptionType which)
 				return;
 				ASSERTNOTREACHED();
 			}
-
 			case SC_Receive:
 			{
 				DEBUG(dbgSys, "[SC] SC_Receive.\n");
@@ -488,7 +477,6 @@ void ExceptionHandler(ExceptionType which)
 				return;
 				ASSERTNOTREACHED();
 			}
-
 			case SC_Add:
 			{
 				DEBUG(dbgSys, "Add " << kernel->machine->ReadRegister(4) << " + " << kernel->machine->ReadRegister(5) << "\n");
@@ -509,7 +497,6 @@ void ExceptionHandler(ExceptionType which)
 				ASSERTNOTREACHED();
 				break;
 			}
-
 			case SC_Disconnect:
 			{
 				DEBUG(dbgSys, "[SC] SC_Disconnect.\n");
@@ -526,7 +513,6 @@ void ExceptionHandler(ExceptionType which)
 				ASSERTNOTREACHED();
 				break;
 			}
-
 			case SC_PrintStrn:
 			{
 				DEBUG(dbgSys, "[SC] SC_PrintStrn.\n");
@@ -565,7 +551,6 @@ void ExceptionHandler(ExceptionType which)
 				ASSERTNOTREACHED();
 				break;
 			}
-
 			case SC_ServerCreate:
 			{
 				DEBUG(dbgSys, "[SC] SC_ServerCreate.\n");
@@ -581,8 +566,7 @@ void ExceptionHandler(ExceptionType which)
 				return;
 				ASSERTNOTREACHED();
 				break;
-			}	
-
+			}
 			case SC_ServerListen:
 			{
 				DEBUG(dbgSys, "[SC] SC_ServerListen.\n");
@@ -599,6 +583,27 @@ void ExceptionHandler(ExceptionType which)
 				ASSERTNOTREACHED();
 				break;
 			}
+//            SC for handle Multi programming
+            case SC_CreatSemaphore: {
+                int virAddr = kernel->machine->ReadRegister(4);
+                int semaphoreVal = kernel->machine->ReadRegister(5);
+
+                char* name = User2System(virtAddr);
+                if (name == NULL) {
+                   DEBUG(dbgSys,"\n Not enough memory in System");
+                   ASSERT(false);
+                   kernel->machine->WriteRegister(2,-1);
+
+                   delete[] name;
+
+                    increasePC();
+                    return;
+                    ASSERTNOTREACHED();
+                    break;
+                }
+            }
+            case SC_Exec
+
 			
 			default:
 				cerr << "Unexpected system call " << type << "\n";
