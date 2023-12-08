@@ -602,7 +602,29 @@ void ExceptionHandler(ExceptionType which)
                     break;
                 }
             }
-            case SC_Exec
+            case SC_Exec:{
+                int virtAddr;
+                virtAddr = kernel->machine->ReadRegister(4);
+
+                char* name;
+                name = User2System(virtAddr);
+
+                if (name == NULL) {
+                    DEBUG(dbgSys,"\n Not enough memory in System");
+                    ASSERT(false);
+                    kernel->machine->WriteRegister(2,-1);
+                    increasePC();
+                    return;
+                    ASSERTNOTREACHED();
+                    break;
+                }
+                increasePC();
+                return;
+                ASSERTNOTREACHED();
+                break;
+
+            }
+
 
 			
 			default:

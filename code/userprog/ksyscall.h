@@ -21,6 +21,16 @@
  * Systemcall interface
  * These are the operations the Nachos kernel needs to support
  */
+int SysExec(char* name){
+    OpenFile* oFile = kernel->fileSystem->Open(name);
+    if (oFile == NULL) {
+        DEBUG(dbgSys,"\n Exec:: Can't open this file.");
+        return -1;
+    }
+    delete oFile;
+    return kernel->pTab->ExecUpdate(name);
+}
+
 void SysHalt()
 {
   kernel->interrupt->Halt();
@@ -256,17 +266,10 @@ int SysWrite(char* buffer, int size, OpenFileID fd){
   if (file == NULL)
   {
     res = -1;
-<<<<<<< HEAD
-      DEBUG(dbgFile, "case 2 ");
-  }else if(!file->canWrite()){
-    res = -1;
-      DEBUG(dbgFile, "case 2 ");
-=======
     DEBUG(dbgFile, "\n\tCannot write to file because it's not opened" << fd);
   }else if(!file->canWrite()){
     res = -1;
     DEBUG(dbgFile, "\n\tCannot write to file because it's opened in readonly mode" << fd);
->>>>>>> master
   }
   else
   {
