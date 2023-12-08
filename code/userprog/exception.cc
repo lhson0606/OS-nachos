@@ -143,6 +143,24 @@ void ExceptionHandler(ExceptionType which)
 				ASSERTNOTREACHED();
 				break;
 			}
+
+			case SC_Exec:
+			{
+				DEBUG(dbgSys, "[SC] SC_Exec.\n");
+				char* exec_name;
+
+				virtAddr = kernel->machine->ReadRegister(4);
+				exec_name = User2System(virtAddr, FILE_NAME_MAX_LEN);
+
+				SysExec(exec_name);
+
+				//delete[] exec_name;
+				increasePC();
+				return;
+				ASSERTNOTREACHED();
+				break;
+			}
+
 			case SC_GetArgvs:
 			{
 				DEBUG(dbgSys, "[SC] SC_GetArgvs.\n");

@@ -8,6 +8,8 @@ class PCB
 
 public:
     int parentID; // The parent process’s ID
+    int pID; // The process ID
+
     PCB(int id); // Constructor
     ~PCB(); // Destructor
     // Load the program has the name is “filename” and the process id is pid

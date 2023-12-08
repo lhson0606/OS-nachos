@@ -16,6 +16,7 @@
 #include "serversocket.h"
 #include "openfile.h"
 #include "fdt.h"
+#include "ptable.h"
 
 /**
  * Systemcall interface
@@ -452,6 +453,11 @@ int SysSSPollAccept(int ss_fd){
 
   //int res = serverSocket->pollAccept();
   return 0;
+}
+
+int SysExec(char* filename){
+  DEBUG(dbgThread, "\n\tSysExec received filename: " << filename);
+  return kernel->pTab->ExecUpdate(filename);
 }
 
 #endif /* ! __USERPROG_KSYSCALL_H__ */

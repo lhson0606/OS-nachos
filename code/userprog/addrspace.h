@@ -21,7 +21,12 @@
 class AddrSpace {
   public:
     AddrSpace();			// Create an address space.
+    AddrSpace(OpenFile *executable);	// Create an address space,
+          // initializing it with the program
+          // stored in the file "executable"
     ~AddrSpace();			// De-allocate an address space
+    //This is our custom load version, loads the code into memory for multiprogramming version
+    bool Load(OpenFile executable);
 
     bool Load(char *fileName);		// Load a program into addr space from
                                         // a file

@@ -278,13 +278,14 @@ main(int argc, char **argv)
     if (dirListFlag) {
       kernel->fileSystem->List();
     }
-    if (printFileName != NULL) {
+if (printFileName != NULL) {
       Print(printFileName);
     }
 #endif // FILESYS_STUB
 
     // finally, run an initial user program if requested to do so
     if (userProgName != NULL) {
+        DEBUG(dbgThread, "Initializing user program: "<<userProgName);
       AddrSpace *space = new AddrSpace;
       ASSERT(space != (AddrSpace *)NULL);
       if (space->Load(userProgName)) {  // load the program into the space

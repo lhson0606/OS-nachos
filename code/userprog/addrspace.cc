@@ -20,6 +20,8 @@
 #include "addrspace.h"
 #include "machine.h"
 #include "noff.h"
+#include "kernel.h"
+#include "bitmap.h"
 
 //----------------------------------------------------------------------
 // SwapHeader
@@ -57,6 +59,63 @@ SwapHeader (NoffHeader *noffH)
 #endif
 }
 
+/**
+ * This is the constructor for the address space for a user program
+ * find and allocate the needed pages for the address space, this is used for multiprogramming
+ * NOTE: this function won't close the executable file, the caller should close it, typically after call Load(executable)
+ * @param executable the executable file contains the program we are going to run
+*/
+AddrSpace::AddrSpace(OpenFile* executable)
+{
+    NoffHeader noffH;
+    unsigned int size;
+    //our executable is the file we are going to run
+    ASSERT(executable != NULL);
+
+    executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
+    DEBUG(dbgAddr, "code size: " << noffH.code.size);
+    if ((noffH.noffMagic != NOFFMAGIC) && 
+		(WordToHost(noffH.noffMagic) == NOFFMAGIC))
+    	SwapHeader(&noffH);
+    ASSERT(noffH.noffMagic == NOFFMAGIC);
+
+    //we will try to calculate the needed size of the address space
+    size = noffH.code.size + noffH.readonlyData.size + noffH.initData.size +
+           noffH.uninitData.size + UserStackSize;	
+
+    numPages = divRoundUp(size, PageSize);
+    size = numPages * PageSize;
+
+    //we will try to allocate the needed space for the address space
+    int* ppn = new int[numPages];//this is used to store the physical page numbers
+    //our
+
+    for(int i = 0; i < numPages; i++)
+    {
+        int temp = kernel->gPhysPageBitMap->FindAndSet();
+        //#todo: right now we are not handling the case when there is no free page
+        //oh boy, we are in trouble
+        ASSERT(temp != -1);
+        //else this page is free, we will use it
+        pageTable[i].virtualPage = i;
+        pageTable[i].physicalPage = temp;//map the virtual page to the physical page
+        pageTable[i].valid = TRUE;
+        pageTable[i].use = FALSE;
+        pageTable[i].dirty = FALSE;
+        pageTable[i].readOnly = FALSE;
+    }
+
+    //we will zero out the entire allocated pages not all the memory
+    for(int i = 0; i < numPages; i++)
+    {
+        char* physicalAddr = &(kernel->machine->mainMemory[pageTable[i].physicalPage * PageSize]);//because each page is PageSize bytes
+        bzero(physicalAddr, PageSize);
+    }
+
+    delete ppn;
+}
+
+
 //----------------------------------------------------------------------
 // AddrSpace::AddrSpace
 // 	Create an address space to run a user program.
@@ -69,12 +128,13 @@ AddrSpace::AddrSpace()
 {
     pageTable = new TranslationEntry[NumPhysPages];
     for (int i = 0; i < NumPhysPages; i++) {
-	pageTable[i].virtualPage = i;	// for now, virt page # = phys page #
-	pageTable[i].physicalPage = i;
-	pageTable[i].valid = TRUE;
-	pageTable[i].use = FALSE;
-	pageTable[i].dirty = FALSE;
-	pageTable[i].readOnly = FALSE;  
+        DEBUG(dbgAddr, "Initializing physical page " << i);
+        pageTable[i].virtualPage = i;	// for now, virt page # = phys page #
+        pageTable[i].physicalPage = i;
+        pageTable[i].valid = TRUE;
+        pageTable[i].use = FALSE;
+        pageTable[i].dirty = FALSE;
+        pageTable[i].readOnly = FALSE;  
     }
     
     // zero out the entire address space
@@ -91,6 +151,19 @@ AddrSpace::~AddrSpace()
    delete pageTable;
 }
 
+/**
+ * This function should only be called after the constructor AddrSpace(OpenFile* executable) is called, otherwise it will not work
+*/
+bool
+AddrSpace::Load(OpenFile executable){
+    //same as Load(char* fileName) version, but we need load the code to the correct physical page, not all the memory
+    //we don't need to recalculate the size and numPages, because we already did that in the constructor
+    DEBUG(dbgAddr, "Currently loading " << numPages << " pages into memory");
+    ASSERT(numPages <= NumPhysPages);		// check we're not trying
+						// to run anything too big --
+						// at least until we have
+						// virtual memory
+}
 
 //----------------------------------------------------------------------
 // AddrSpace::Load
@@ -105,6 +178,7 @@ AddrSpace::~AddrSpace()
 bool 
 AddrSpace::Load(char *fileName) 
 {
+    DEBUG(dbgAddr, "Loading file " << fileName);
     OpenFile *executable = kernel->fileSystem->Open(fileName);
     NoffHeader noffH;
     unsigned int size;
@@ -115,6 +189,7 @@ AddrSpace::Load(char *fileName)
     }
 
     executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
+    DEBUG(dbgAddr, "code size: " << noffH.code.size);
     if ((noffH.noffMagic != NOFFMAGIC) && 
 		(WordToHost(noffH.noffMagic) == NOFFMAGIC))
     	SwapHeader(&noffH);
@@ -126,14 +201,29 @@ AddrSpace::Load(char *fileName)
            noffH.uninitData.size + UserStackSize;	
                                                 // we need to increase the size
 						// to leave room for the stack
+    DEBUG(dbgAddr, "Total code size 1: " << size);
+    DEBUG(dbgAddr, "code size: " << noffH.code.size);
+    DEBUG(dbgAddr, "readonly size: " << noffH.readonlyData.size);
+    DEBUG(dbgAddr, "init size: " << noffH.initData.size);
+    DEBUG(dbgAddr, "uninit size: " << noffH.uninitData.size);
+    DEBUG(dbgAddr, "stack size: " << UserStackSize);
 #else
 // how big is address space?
     size = noffH.code.size + noffH.initData.size + noffH.uninitData.size 
 			+ UserStackSize;	// we need to increase the size
 						// to leave room for the stack
+    DEBUG(dbgAddr, "Total code size 2: " << size);
+    DEBUG(dbgAddr, "code size: " << noffH.code.size);
+    DEBUG(dbgAddr, "readonly size: " << noffH.readonlyData.size);
+    DEBUG(dbgAddr, "init size: " << noffH.initData.size);
+    DEBUG(dbgAddr, "uninit size: " << noffH.uninitData.size);
+    DEBUG(dbgAddr, "stack size: " << UserStackSize);
 #endif
+    DEBUG(dbgAddr, "Initializing address space, num pages " << numPages << ", size " << size);
     numPages = divRoundUp(size, PageSize);
+    DEBUG(dbgAddr, "Initializing address space, num pages " << numPages << ", size " << size);
     size = numPages * PageSize;
+    DEBUG(dbgAddr, "Initializing address space, num pages " << numPages << ", size " << size);
 
     ASSERT(numPages <= NumPhysPages);		// check we're not trying
 						// to run anything too big --
