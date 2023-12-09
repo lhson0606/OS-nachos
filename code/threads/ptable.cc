@@ -18,13 +18,14 @@ int PTable::ExecUpdate(char* filename)
     bmsem->P();
 
     int freeSlot = GetFreeSlot();
+    DEBUG(dbgThread, "Free slot: " << freeSlot);
 
     if(freeSlot == -1)
     {
         bmsem->V();
         return -1;
     }
-    //note that we our table is called "pcb" already
+    //note that our table is called "pcb" already
     PCB* aNewPcb = new PCB(freeSlot);
     //add our new pcb to the table
     pcb[freeSlot] = aNewPcb;
@@ -37,6 +38,8 @@ int PTable::ExecUpdate(char* filename)
 
 int PTable::ExitUpdate(int)
 {
+    kernel->currentThread->Finish();
+    //#todo: implement this(release resources include memory, files, etc. hoding by the process)
     return -1;
 }
 

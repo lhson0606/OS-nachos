@@ -460,4 +460,9 @@ int SysExec(char* filename){
   return kernel->pTab->ExecUpdate(filename);
 }
 
+void SysExit(int status){
+  DEBUG(dbgThread, "\n\tSysExit received status: " << status);
+  kernel->pTab->ExitUpdate(status);
+}
+
 #endif /* ! __USERPROG_KSYSCALL_H__ */

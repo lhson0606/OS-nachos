@@ -20,13 +20,15 @@
 
 class AddrSpace {
   public:
+    OpenFile *executable;		// The file containing the code to run
+
     AddrSpace();			// Create an address space.
     AddrSpace(OpenFile *executable);	// Create an address space,
           // initializing it with the program
           // stored in the file "executable"
     ~AddrSpace();			// De-allocate an address space
     //This is our custom load version, loads the code into memory for multiprogramming version
-    bool Load(OpenFile executable);
+    bool Load(OpenFile* executable);
 
     bool Load(char *fileName);		// Load a program into addr space from
                                         // a file
@@ -52,7 +54,11 @@ class AddrSpace {
 
     void InitRegisters();		// Initialize user-level CPU registers,
 					// before jumping to user code
-
+    /**
+     * use this when the memory is not contiguous in multiprogramming version
+     * assume that constructor has already been called
+    */
+    void LoadIntoMemory(OpenFile *executable, int startAddr, int size, int virtualAddr);
 };
 
 #endif // ADDRSPACE_H

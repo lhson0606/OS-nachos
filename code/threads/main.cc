@@ -45,6 +45,7 @@
 #include "filesys.h"
 #include "openfile.h"
 #include "sysdep.h"
+#include "ptable.h"
 
 // global variables
 Kernel *kernel;
@@ -286,12 +287,22 @@ if (printFileName != NULL) {
     // finally, run an initial user program if requested to do so
     if (userProgName != NULL) {
         DEBUG(dbgThread, "Initializing user program: "<<userProgName);
-      AddrSpace *space = new AddrSpace;
+        OpenFile *executable = kernel->fileSystem->Open(userProgName);
+      AddrSpace *space = new AddrSpace(executable);
       ASSERT(space != (AddrSpace *)NULL);
-      if (space->Load(userProgName)) {  // load the program into the space
-	space->Execute();              // run the program
-	ASSERTNOTREACHED();            // Execute never returns
-      }
+      if (space->Load(executable)) {  // load the program into the space
+	    space->Execute();              // run the program
+
+    // DEBUG(dbgThread, "Initializing user program: "<<userProgName);
+    //   AddrSpace *space = new AddrSpace();
+    //   ASSERT(space != (AddrSpace *)NULL);
+    //   if (space->Load(userProgName)) {  // load the program into the space
+	// space->Execute();   
+	// ASSERTNOTREACHED();            // Execute never returns
+
+    //#todo fixed this to multi-programming version
+   //kernel->pTab->ExecUpdate(userProgName);
+        }
     }
 
     // If we don't run a user program, we may get here.

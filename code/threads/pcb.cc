@@ -1,9 +1,15 @@
 #include "pcb.h"
+#include "debug.h"
 
 void processCreator(void* arg)
 {
+    DEBUG(dbgThread, "Entering processCreator");
+    //I have no idea what this does :)
  AddrSpace *space = (AddrSpace*)arg;
- space->Execute();
+ if(space->Load(space->executable)){
+    space->Execute();
+ }
+ ASSERTNOTREACHED();
 } 
 
 
@@ -25,15 +31,26 @@ PCB::~PCB()
 
 int PCB::Exec(char* tname,int pid)
 {
+    DEBUG(dbgThread, "Entering Exec");
     multex->P();
 
     OpenFile *executable = kernel->fileSystem->Open(tname);
+    //#todo check if executable is null
+    ASSERT(executable != NULL);
     AddrSpace *space;
     space = new AddrSpace(executable);
-    Thread * t = new Thread(tname);
+    //#todo implement an actual process data structure, with a kernel thread which is the executor
+    Thread * t = new Thread(tname, pid);
     t->space = space;      // jump to the user progam
 
     t->Fork(&processCreator, (void*)space);
+    DEBUG(dbgThread, "New thread created");
+    DEBUG(dbgThread, "Entering processCreator");
+    //I have no idea what this does :)
+    // if(space->Load(space->executable)){
+    //     multex->V();
+    //     space->Execute();
+    // }
     
     multex->V();
 }

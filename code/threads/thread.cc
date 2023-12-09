@@ -47,6 +47,20 @@ Thread::Thread(char* threadName)
     space = NULL;
 }
 
+Thread::Thread(char* debugName, int id)
+{
+    name = debugName;
+    stackTop = NULL;
+    stack = NULL;
+    status = JUST_CREATED;
+    for (int i = 0; i < MachineStateSize; i++) {
+	machineState[i] = NULL;		// not strictly necessary, since
+					// new thread ignores contents 
+					// of machine registers
+    }
+    space = NULL;
+}
+
 //----------------------------------------------------------------------
 // Thread::~Thread
 // 	De-allocate a thread.
@@ -66,6 +80,9 @@ Thread::~Thread()
     ASSERT(this != kernel->currentThread);
     if (stack != NULL)
 	DeallocBoundedArray((char *) stack, StackSize * sizeof(int));
+    //#todo delete threa name? We may only delete the name if it's called via Thread(char* debugName, int id)
+    //due to our implementation of PCB
+    //#todo find another way to delete the name or just leave it as it is
 }
 
 //----------------------------------------------------------------------
@@ -432,5 +449,10 @@ Thread::SelfTest()
     t->Fork((VoidFunctionPtr) SimpleThread, (void *) 1);
     kernel->currentThread->Yield();
     SimpleThread(0);
+}
+
+int
+Thread::getId() { 
+    return id; 
 }
 
