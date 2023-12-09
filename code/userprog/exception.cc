@@ -58,7 +58,7 @@
 +======================================================================+
 */
 // Start of constants =================================================
-const int MAX_STRING_LEN = 255;
+const int MAX_STRING_LEN = 64;
 const int FILE_NAME_MAX_LEN = 32;
 // End of constants ====================================================
 /**
@@ -96,10 +96,59 @@ void ExceptionHandler(ExceptionType which)
 	//user space address
 	int virtAddr;
 
-	//DEBUG(dbgSys, "Received Exception " << which << " type: " << type << "\n");
+	DEBUG(dbgSys, "Received Exception " << which << " type: " << type << "\n");
+	
 
-	switch (which)
+	switch (which)//see machine.h for exception type
 	{
+	case PageFaultException:
+		{
+			//#todo: implement this
+			ASSERTNOTREACHED();
+			break;
+		}		
+	case ReadOnlyException:
+		{
+			//#todo: implement this
+			ASSERTNOTREACHED();
+			break;
+		}
+
+	case BusErrorException:
+		{
+			//#todo: implement this
+			ASSERTNOTREACHED();
+			break;
+		}
+
+	case AddressErrorException:
+		{
+			//#todo: implement this
+			ASSERTNOTREACHED();
+			break;
+		}
+
+	case OverflowException:
+		{
+			//#todo: implement this
+			ASSERTNOTREACHED();
+			break;
+		}
+
+	case IllegalInstrException:
+		{
+			//#todo: implement this
+			ASSERTNOTREACHED();
+			break;
+		}
+
+	case NumExceptionTypes:
+		{
+			//#todo: implement this
+			ASSERTNOTREACHED();
+			break;
+		}
+
 	case SyscallException:
 		switch (type)
 		{
@@ -575,12 +624,7 @@ void ExceptionHandler(ExceptionType which)
 				}
 
 				int count;
-				count = 0;
-
-				while(strn[count] != '\0' && count<MAX_STRING_LEN){
-					SysPrintChar(strn[count]);
-					count++;
-				}
+				count = SysPrintString(strn);
 				
 				DEBUG(dbgSys, "\tString: " << strn << "\n");
 				int strn_len;
@@ -632,17 +676,17 @@ void ExceptionHandler(ExceptionType which)
 			}
 			
 			default:
-				//cerr << "Unexpected system call " << type << "\n";
+				cerr << "Unexpected system call " << type << "\n";
 			break;
 		}
 		
 	break;
 
 	default:
-		//cerr << "Unexpected user mode exception " << (int)which << "\n";
+		cerr << "Unexpected user mode exception " << (int)which << "\n";
 		break;
 	}
-	//ASSERTNOTREACHED();
+	ASSERTNOTREACHED();
 }
 
 /*

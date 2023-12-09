@@ -32,13 +32,13 @@ void SysHalt()
  * @param string The null-terminated string to print
  * @see ConsoleDriver::PutString
  */
-void SysPrintString(char *string)
+int SysPrintString(char *string)
 {
-  while(*string != '\0'){
-    kernel->synchConsoleOut->PutChar(*string);
-    string++;
-  }
+  int size = strnlen(string, MAX_ALLOWED_BUFFER_SIZE);
+
+  kernel->synchConsoleOut->PutString(string, size);
   // kernel->GetConsole()->PutString(string);
+  return size;
 }
 
 void exitWithError(char* msg){
