@@ -31,6 +31,7 @@
 
 #include "copyright.h"
 #include "main.h"
+#include "synch.h"
 
 // Routines for converting Words and Short Words to and from the
 // simulated machine's format of little endian.  These end up
@@ -85,15 +86,18 @@ ShortToMachine(unsigned short shortword) { return ShortToHost(shortword); }
 bool
 Machine::ReadMem(int addr, int size, int *value)
 {
+	kernel->addrLock->P();
     int data;
     ExceptionType exception;
     int physicalAddress;
     
-    DEBUG(dbgAddr, "Reading VA " << addr << ", size " << size);
+    //DEBUG(dbgAddr, "Reading VA " << addr << ", size " << size);
     
     exception = Translate(addr, &physicalAddress, size, FALSE);
     if (exception != NoException) {
-	RaiseException(exception, addr);
+		kernel->addrLock->V();
+		kernel->currentThread->space->setInvalidAccessingAddr(addr);
+		RaiseException(exception, addr);
 	return FALSE;
     }
     switch (size) {
@@ -115,7 +119,8 @@ Machine::ReadMem(int addr, int size, int *value)
       default: ASSERT(FALSE);
     }
     
-    DEBUG(dbgAddr, "\tvalue read = " << *value);
+    //DEBUG(dbgAddr, "\tvalue read = " << *value);
+	kernel->addrLock->V();
     return (TRUE);
 }
 
@@ -135,15 +140,18 @@ Machine::ReadMem(int addr, int size, int *value)
 bool
 Machine::WriteMem(int addr, int size, int value)
 {
+	kernel->addrLock->P();
     ExceptionType exception;
     int physicalAddress;
      
-    DEBUG(dbgAddr, "Writing VA " << addr << ", size " << size << ", value " << value);
+    //DEBUG(dbgAddr, "Writing VA " << addr << ", size " << size << ", value " << value);
 
     exception = Translate(addr, &physicalAddress, size, TRUE);
     if (exception != NoException) {
-	RaiseException(exception, addr);
-	return FALSE;
+		kernel->currentThread->space->setInvalidAccessingAddr(addr);
+		kernel->addrLock->V();
+		RaiseException(exception, addr);
+		return FALSE;
     }
     switch (size) {
       case 1:
@@ -163,6 +171,7 @@ Machine::WriteMem(int addr, int size, int value)
       default: ASSERT(FALSE);
     }
     
+	kernel->addrLock->V();
     return TRUE;
 }
 
@@ -189,7 +198,7 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
     TranslationEntry *entry;
     unsigned int pageFrame;
 
-    DEBUG(dbgAddr, "\tTranslate " << virtAddr << (writing ? " , write" : " , read"));
+    //DEBUG(dbgAddr, "\tTranslate " << virtAddr << (writing ? " , write" : " , read"));
 
 // check for alignment errors
     if (((size == 4) && (virtAddr & 0x3)) || ((size == 2) && (virtAddr & 0x1))){
@@ -246,6 +255,6 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 	entry->dirty = TRUE;
     *physAddr = pageFrame * PageSize + offset;
     ASSERT((*physAddr >= 0) && ((*physAddr + size) <= MemorySize));
-    DEBUG(dbgAddr, "phys addr = " << *physAddr);
+    //DEBUG(dbgAddr, "phys addr = " << *physAddr);
     return NoException;
 }

@@ -15,11 +15,15 @@
 
 #include "copyright.h"
 #include "filesys.h"
+#include "openfile.h"
+
+class Thread;
 
 #define UserStackSize		1024 	// increase this as necessary!
 
 class AddrSpace {
   public:
+    //#todo: remember to free this, oh boy I'm so depressed :)
     OpenFile *executable;		// The file containing the code to run
 
     AddrSpace();			// Create an address space.
@@ -46,6 +50,23 @@ class AddrSpace {
     // is 0 for Read, 1 for Write.
     ExceptionType Translate(unsigned int vaddr, unsigned int *paddr, int mode);
 
+    void setInvalidAccessingAddr(int addr);
+
+    int getAndResetInvalidAccessingAddr();
+
+    void saveToBackingStore(int vpn);
+
+    void loadFromBackingStore(int vpn);
+
+    bool isDirty(int vpn);
+
+    void setValidPage(int vpn, bool val);
+
+    void updatePageTable(int vpn, int ppn);
+
+    void initBackingStore(int size);
+
+    int getVirtualPage(int ppn);
   private:
     TranslationEntry *pageTable;	// Assume linear page table translation
 					// for now!
@@ -59,6 +80,23 @@ class AddrSpace {
      * assume that constructor has already been called
     */
     void LoadIntoMemory(OpenFile *executable, int startAddr, int size, int virtualAddr);
+    int invalidAccessingAddr = -1; //used to store the address that caused the exception
+    OpenFile* backingStore = NULL;
+    static int backingStoreID;
+};
+
+// This class is used to store which physical page is allocated to which space
+// so that we can we can perform swapping when needed
+// probably need a separate file for this, but I'm too lazy to do that :)
+class AddrSpaceManager {
+  public:
+    Thread** alloTable;
+    void dumpState();
+    static AddrSpaceManager* getInstance();
+    int findAndTakeFreePage();
+  private:
+    static AddrSpaceManager* instance;
+    AddrSpaceManager(int pageNum);
 };
 
 #endif // ADDRSPACE_H

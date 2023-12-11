@@ -17,6 +17,8 @@
 #include "openfile.h"
 #include "fdt.h"
 #include "ptable.h"
+//#todo: move this to somewhere else
+#include "addrspace.h"
 
 /**
  * Systemcall interface
@@ -463,6 +465,63 @@ int SysExec(char* filename){
 void SysExit(int status){
   DEBUG(dbgThread, "\n\tSysExit received status: " << status);
   kernel->pTab->ExitUpdate(status);
+}
+
+void handlePageFaultException(){
+  /**
+   * need to be implemented as follows:
+   * +  try to find a free physical page and load the page into it
+   * +  if there is no free physical page, find a victim page to swap out
+   * +  save the victim page to backing store
+   * +  load the page into the victim page
+   * +  update the page table entry both (assumed we are using pageTable not tlb)
+  */
+ //kernel->currentThread->SaveUserState();
+  DEBUG(dbgThread, "\n\tPage fault occurred at thread: " << kernel->currentThread->getName());
+  //try to find a free physical page and load the page into it
+  int ppn = AddrSpaceManager::getInstance()->findAndTakeFreePage();
+  //if there is no free physical page, find a victim page to swap out currently just choose the first page :))
+  // //#todo: find an efficient way to choose victim page
+  kernel->addrLock->P();
+  if(ppn == -1) {
+    ppn = 1;
+    //obtain memory mutex
+    //get virtual page number
+    int vpn = kernel->currentThread->space->getAndResetInvalidAccessingAddr() / PageSize;
+    //get the victim thread
+    Thread* victimThread = AddrSpaceManager::getInstance()->alloTable[ppn];
+    //get according victim virtual page number
+    int victimVPN = victimThread->space->getVirtualPage(ppn);
+    ASSERT(victimVPN != -1);//if it's -1, it means that something is wrong
+    DEBUG(dbgThread, "\n\tppn: " << ppn<<" victimVPN: "<<victimVPN);
+    //save the victim page to backing store if it is dirty
+    // if(victimThread->space->isDirty(victimVPN)){
+    //   victimThread->space->saveToBackingStore(victimVPN);
+    // }
+
+    victimThread->space->saveToBackingStore(victimVPN);
+    
+    victimThread->space->setValidPage(victimVPN, false);
+
+    kernel->currentThread->space->updatePageTable(vpn, ppn);
+    kernel->currentThread->space->loadFromBackingStore(vpn);
+  }else{//we found a free page, simply load the page into it
+    //get virtual page number
+    int vpn = kernel->currentThread->space->getAndResetInvalidAccessingAddr() / PageSize;
+    kernel->currentThread->space->updatePageTable(vpn, ppn);
+    kernel->currentThread->space->loadFromBackingStore(vpn);
+
+  }
+
+  kernel->addrLock->V();
+  //restart instruction
+  //#todo some bugs here, I don't know man :)
+  //AddrSpaceManager::getInstance()->dumpState();
+  kernel->currentThread->RestoreUserState();
+  //kernel->machine->WriteRegister(PCReg, kernel->machine->ReadRegister(PrevPCReg));
+  kernel->machine->Run();
+  //kernel->currentThread->space->Execute();
+  ASSERTNOTREACHED();
 }
 
 #endif /* ! __USERPROG_KSYSCALL_H__ */

@@ -1352,7 +1352,7 @@ translate.o: ../machine/translate.cc /usr/include/stdc-predef.h \
  ../filesys/filesys.h ../filesys/openfile.h ../threads/scheduler.h \
  ../lib/list.h ../lib/list.cc ../machine/interrupt.h \
  ../machine/callback.h ../machine/stats.h ../threads/alarm.h \
- ../machine/timer.h
+ ../machine/timer.h ../threads/synch.h
 network.o: ../machine/network.cc /usr/include/stdc-predef.h \
  ../lib/copyright.h ../machine/network.h ../lib/utility.h \
  ../machine/callback.h ../threads/main.h ../lib/debug.h ../lib/sysdep.h \

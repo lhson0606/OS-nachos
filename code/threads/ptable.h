@@ -20,7 +20,7 @@ public:
     bool IsExist(int pid); // Check a process exist or not
     void Remove(int pid); // Delete the PID from the PTable
     char* GetFileName(int id); // Return the process name
-
+    
 private:
     int psize;
     Bitmap *bm; // mark the locations that have been used in pcb

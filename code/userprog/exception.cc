@@ -104,7 +104,7 @@ void ExceptionHandler(ExceptionType which)
 	case PageFaultException:
 		{
 			//#todo: implement this
-			ASSERTNOTREACHED();
+			handlePageFaultException();
 			break;
 		}		
 	case ReadOnlyException:

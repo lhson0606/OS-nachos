@@ -23,6 +23,36 @@
 #include "kernel.h"
 #include "bitmap.h"
 #include "synch.h"
+#include "thread.h"
+
+AddrSpaceManager* AddrSpaceManager::instance = new AddrSpaceManager(NumPhysPages);
+int AddrSpace::backingStoreID = 0;
+
+AddrSpaceManager* AddrSpaceManager::getInstance(){
+    ASSERT(instance != NULL);
+    return instance;
+}
+
+AddrSpaceManager::AddrSpaceManager(int numPages){
+    alloTable = new Thread*[numPages];
+    for(int i = 0; i < numPages; i++){
+        alloTable[i] = NULL;
+    }
+}
+
+void AddrSpaceManager::dumpState(){
+      int usedPages = 0;
+
+      for(int i = 0; i < NumPhysPages; i++){
+        if(alloTable[i] != NULL){
+          usedPages++;
+          printf("Page %d is allocated to thread %s\n", i, alloTable[i]->getName());
+        }
+      }
+
+      printf("Total physical pages are used\n", NumPhysPages);
+      printf("Total %d pages are used\n", usedPages);
+    }
 
 //----------------------------------------------------------------------
 // SwapHeader
@@ -91,31 +121,8 @@ AddrSpace::AddrSpace(OpenFile* executable)//#todo fix this so that it can open e
     pageTable = new TranslationEntry[numPages];
     size = numPages * PageSize;
 
-    kernel->addrLock->P();
-    for(int i = 0; i < numPages; i++)
-    {
-        int temp = kernel->gPhysPageBitMap->FindAndSet();
-        //#todo: right now we are not handling the case when there is no free page
-        //oh boy, we are in trouble
-        ASSERT(temp != -1);
-        DEBUG(dbgAddr, "Allocating physical page " << temp << " for virtual page " << i);
-        //else this page is free, we will use it
-        pageTable[i].virtualPage = i;
-        pageTable[i].physicalPage = temp;//map the virtual page to the physical page
-        pageTable[i].valid = TRUE;
-        pageTable[i].use = FALSE;
-        pageTable[i].dirty = FALSE;
-        pageTable[i].readOnly = FALSE;
-    }
-    kernel->addrLock->V();
-
-    //we will zero out the entire allocated pages not all the memory
-    for(int i = 0; i < numPages; i++)
-    {
-        DEBUG(dbgAddr, "Zeroing out physical page " << pageTable[i].physicalPage);
-        char* physicalAddr = &(kernel->machine->mainMemory[pageTable[i].physicalPage * PageSize]);//because each page is PageSize bytes
-        bzero(physicalAddr, PageSize);
-    }
+    DEBUG(dbgAddr, "Initializing backing store with size "<<size<<" bytes ");
+    initBackingStore(size);
 }
 
 
@@ -129,6 +136,8 @@ AddrSpace::AddrSpace(OpenFile* executable)//#todo fix this so that it can open e
 
 AddrSpace::AddrSpace()
 {
+    //this should'nt be used in multiprogramming version
+    ASSERT(false);
     pageTable = new TranslationEntry[NumPhysPages];
     for (int i = 0; i < NumPhysPages; i++) {
         DEBUG(dbgAddr, "Initializing physical page " << i);
@@ -137,7 +146,9 @@ AddrSpace::AddrSpace()
         pageTable[i].valid = TRUE;
         pageTable[i].use = FALSE;
         pageTable[i].dirty = FALSE;
-        pageTable[i].readOnly = FALSE;  
+        pageTable[i].readOnly = FALSE;
+        //save to the alloTable
+        AddrSpaceManager::getInstance()->alloTable[pageTable[i].physicalPage] = kernel->currentThread;  
     }
     
     // zero out the entire address space
@@ -152,6 +163,11 @@ AddrSpace::AddrSpace()
 AddrSpace::~AddrSpace()
 {
    delete pageTable;
+   delete executable;
+    if(backingStore != NULL){
+        delete backingStore;
+        //#todo: delete the backing store file
+    }
 }
 
 void 
@@ -161,7 +177,19 @@ AddrSpace::LoadIntoMemory(OpenFile *executable, int startAddr, int size, int vir
     unsigned int translatedAddr;
     DEBUG(dbgAddr, "Loading " << pageCount << " pages into memory startAddr "<< startAddr << ", size " << size << ", virtualAddr" << virtualAddr);
     for(int i = 0; i < pageCount; i++){
-        Translate(virtualAddr + i * PageSize, &translatedAddr, 1);
+        int curVpn = virtualAddr/PageSize + i;
+        DEBUG(dbgAddr, "Loading virtual page " << curVpn);
+        //if the page is not valid, we have to stop loading
+        if(!pageTable[curVpn].valid){
+            //the page will be loaded into memory when PageFaultException is thrown, right now we just ignore it
+            DEBUG(dbgAddr, "Virtual page " << curVpn << " saving to backing store ...");
+            saveToBackingStore(curVpn);
+            continue;
+        }
+        //#todo: this should be Translate(virtualAddr + i * PageSize, &translatedAddr, 0);
+        //since we are loading the code, we don't need to write to the memory
+        //I'm not sure, probably have a bug here
+        Translate(virtualAddr + i * PageSize, &translatedAddr, 0);
         executable->ReadAt(
 		&(kernel->machine->mainMemory[translatedAddr]), 
             PageSize, startAddr + i * PageSize);
@@ -176,12 +204,52 @@ bool
 AddrSpace::Load(OpenFile* executable){
     //same as Load(char* fileName) version, but we need load the code to the correct physical page, not all the memory
     //we don't need to recalculate the size and numPages, because we already did that in the constructor
+    
+    kernel->addrLock->P();
+    for(int i = 0; i < numPages; i++)
+    {
+        int ppn = kernel->gPhysPageBitMap->FindAndSet();
+        //#todo: right now we are not handling the case when there is no free page
+        //oh boy, we are in trouble
+        if(ppn != -1){//no free page found, set valid bit to false, break
+            pageTable[i].valid = TRUE;
+            //save to the alloTable
+            AddrSpaceManager::getInstance()->alloTable[ppn] = kernel->currentThread;
+            DEBUG(dbgAddr, "Allocating physical page " << ppn << " for virtual page " << i);
+        }else{
+            DEBUG(dbgAddr, "No free page found, setting valid bit to false");
+            pageTable[i].valid = FALSE;
+        }
+
+        //else this page is free, we will use it
+        pageTable[i].virtualPage = i;
+        pageTable[i].physicalPage = ppn;//map the virtual page to the physical page        
+        pageTable[i].use = FALSE;
+        pageTable[i].dirty = FALSE;
+        pageTable[i].readOnly = FALSE;
+    }
+    kernel->addrLock->V();
+
+    int validPages = 0;
+    //we will zero out the entire allocated pages not all the memory
+    for(int i = 0; i < numPages; i++)
+    {
+        if(!pageTable[i].valid){
+            DEBUG(dbgAddr, "Virtual page " << i << " is not valid, continue ...");
+            continue;
+        }
+        validPages++;
+        DEBUG(dbgAddr, "Zeroing out physical page " << pageTable[i].physicalPage<< " for virtual page " << i << " ...");
+        char* physicalAddr = &(kernel->machine->mainMemory[pageTable[i].physicalPage * PageSize]);//because each page is PageSize bytes
+        bzero(physicalAddr, PageSize);
+    }
+
     DEBUG(dbgAddr, "Currently loading new executable with " << numPages << " pages into memory");
-    ASSERT(numPages <= NumPhysPages);		// check we're not trying
+    DEBUG(dbgAddr, "Currently loading new executable with " << validPages << " valid pages into memory");
+    //ASSERT(numPages <= NumPhysPages);		// check we're not trying
 						// to run anything too big --
 						// at least until we have
 						// virtual memory
-    DEBUG(dbgAddr, "Initializing address with: " << numPages <<" pages");
 
     NoffHeader noffH;
     unsigned int size;
@@ -461,6 +529,154 @@ AddrSpace::Translate(unsigned int vaddr, unsigned int *paddr, int isReadWrite)
     return NoException;
 }
 
+/**
+ * This function is used to set the invalidAccessingAddr variable
+ * @param addr the address that caused the exception
+*/
+void AddrSpace::setInvalidAccessingAddr(int addr){
+    invalidAccessingAddr = addr;
+}
+
+/**
+ * This function is used to get the invalidAccessingAddr variable
+ * @return the address that caused the exception
+*/
+int AddrSpace::getAndResetInvalidAccessingAddr(){
+    ASSERT(invalidAccessingAddr != -1);
+    int temp = invalidAccessingAddr;
+    invalidAccessingAddr = -1;
+    return temp;
+}
+
+/**
+ * This function is used to save the page to the backing store
+ * @param vpn the virtual page number
+*/
+void AddrSpace::saveToBackingStore(int vpn){
+
+    // if(backingStore == NULL){
+    //     ASSERT(backingStoreID < 10);
+    //     char* fileName = new char[32 + 1];
+    //     sprintf(fileName, "backingStore%d", backingStoreID++);
+    //     bool result = kernel->fileSystem->Create(fileName);
+    //     ASSERT(result);
+    //     backingStore = kernel->fileSystem->Open(fileName);
+    //     delete[] fileName;
+    //     ASSERT(backingStore != NULL);
+    // }
+
+    DEBUG(dbgAddr, "Saving virtual page " << vpn << " to backing store");
+    ASSERT(vpn < numPages);
+    ASSERT(backingStore != NULL);
+    int ppn = pageTable[vpn].physicalPage;
+    ASSERT(ppn < NumPhysPages);
+    int physicalAddr = ppn * PageSize;
+    int virtualAddr = vpn * PageSize;
+    char* buffer = new char[PageSize+1];
+    //copy the page to the buffer
+    bcopy(&(kernel->machine->mainMemory[physicalAddr]), buffer, PageSize);
+    buffer[PageSize] = '\0';
+    DEBUG(dbgAddr, "Saving content: " << buffer << " to backing store");
+    delete[] buffer;
+    backingStore->WriteAt(&(kernel->machine->mainMemory[physicalAddr]), PageSize, virtualAddr);
+}
+
+/**
+ * This function is used to load the page from the backing store
+ * @param vpn the virtual page number
+*/
+void AddrSpace::loadFromBackingStore(int vpn){
+    DEBUG(dbgAddr, "Loading virtual page " << vpn << " from backing store");
+    ASSERT(vpn < numPages);
+    ASSERT(backingStore != NULL);
+    int ppn = pageTable[vpn].physicalPage;
+    ASSERT(ppn < NumPhysPages);
+    int physicalAddr = ppn * PageSize;
+    int virtualAddr = vpn * PageSize;
+    backingStore->ReadAt(&(kernel->machine->mainMemory[physicalAddr]), PageSize, virtualAddr);
+}
+
+/**
+ * This function is used to check if the page is dirty
+ * @param vpn the virtual page number
+*/
+bool AddrSpace::isDirty(int vpn){
+    ASSERT(vpn < numPages);
+    return pageTable[vpn].dirty;
+}
+
+/**
+ * This function is used to set the valid bit of the page
+ * @param vpn the virtual page number
+ * @param val the value to set
+*/
+void AddrSpace::setValidPage(int vpn, bool val){
+    ASSERT(vpn < numPages);
+    ASSERT(pageTable[vpn].valid != val);
+    pageTable[vpn].valid = val;
+}
+
+/**
+ * This function is used to update the page table
+ * @param vpn the virtual page number
+ * @param ppn the physical page number
+*/
+void AddrSpace::updatePageTable(int vpn, int ppn){
+    ASSERT(vpn < numPages);
+    ASSERT(ppn < NumPhysPages);
+    pageTable[vpn].virtualPage = vpn;
+    pageTable[vpn].physicalPage = ppn;
+    pageTable[vpn].valid = TRUE;
+    pageTable[vpn].use = FALSE;
+    pageTable[vpn].dirty = FALSE;
+    pageTable[vpn].readOnly = FALSE;
+    //save to the alloTable
+    AddrSpaceManager::getInstance()->alloTable[ppn] = kernel->currentThread;  
+}
+
+int AddrSpaceManager::findAndTakeFreePage(){
+    kernel->addrLock->P();
+
+    int ppn = kernel->gPhysPageBitMap->FindAndSet();
+    if(ppn != -1){
+        DEBUG(dbgAddr, "Found free page " << ppn);
+        alloTable[ppn] = kernel->currentThread;
+    }
+
+    kernel->addrLock->V();
+    return ppn;
+}
+
+void AddrSpace::initBackingStore(int size){
+    //set create backing store and set size bytes to 0
+    ASSERT(backingStore == NULL);
+    ASSERT(backingStoreID < 10);
+    char* fileName = new char[32 + 1];
+    sprintf(fileName, "backingStore%d", backingStoreID++);
+    bool result = kernel->fileSystem->Create(fileName);
+    ASSERT(result);
+    backingStore = kernel->fileSystem->Open(fileName);
+    delete[] fileName;
+    ASSERT(backingStore != NULL);
+    char* buffer = new char[size];
+    bzero(buffer, size);
+    backingStore->WriteAt(buffer, size, 0);
+    delete[] buffer;
+}
+
+int AddrSpace::getVirtualPage(int ppn){
+    ASSERT(ppn < NumPhysPages);
+    int vpn = -1;
+
+    for(int i = 0; i < numPages; i++){
+        if(pageTable[i].physicalPage == ppn && pageTable[i].valid){
+            vpn = i;
+            break;
+        }
+    }
+
+    return vpn;
+}
 
 
 
