@@ -58,9 +58,7 @@
 +======================================================================+
 */
 // Start of constants =================================================
-const int MAX_INT = 2147483647;
-const int STRING_MAX_LEN = MAX_INT;
-const int MAX_STRING_LEN = 255;
+const int MAX_STRING_LEN = 64;
 const int FILE_NAME_MAX_LEN = 32;
 // End of constants ====================================================
 /**
@@ -99,9 +97,58 @@ void ExceptionHandler(ExceptionType which)
 	int virtAddr;
 
 	DEBUG(dbgSys, "Received Exception " << which << " type: " << type << "\n");
+	
 
-	switch (which)
+	switch (which)//see machine.h for exception type
 	{
+	case PageFaultException:
+		{
+			//#todo: implement this
+			ASSERTNOTREACHED();
+			break;
+		}		
+	case ReadOnlyException:
+		{
+			//#todo: implement this
+			ASSERTNOTREACHED();
+			break;
+		}
+
+	case BusErrorException:
+		{
+			//#todo: implement this
+			ASSERTNOTREACHED();
+			break;
+		}
+
+	case AddressErrorException:
+		{
+			//#todo: implement this
+			ASSERTNOTREACHED();
+			break;
+		}
+
+	case OverflowException:
+		{
+			//#todo: implement this
+			ASSERTNOTREACHED();
+			break;
+		}
+
+	case IllegalInstrException:
+		{
+			//#todo: implement this
+			ASSERTNOTREACHED();
+			break;
+		}
+
+	case NumExceptionTypes:
+		{
+			//#todo: implement this
+			ASSERTNOTREACHED();
+			break;
+		}
+
 	case SyscallException:
 		switch (type)
 		{
@@ -142,6 +189,39 @@ void ExceptionHandler(ExceptionType which)
 				ASSERTNOTREACHED();
 				break;
 			}
+
+			case SC_Exec:
+			{
+				DEBUG(dbgSys, "[SC] SC_Exec.\n");
+				char* exec_name;
+
+				virtAddr = kernel->machine->ReadRegister(4);
+				exec_name = User2System(virtAddr, FILE_NAME_MAX_LEN);
+
+				SysExec(exec_name);
+
+				//the thread will use exec_name, do not delete it here
+				increasePC();
+				return;
+				ASSERTNOTREACHED();
+				break;
+			}
+
+			case SC_Exit:
+			{
+				DEBUG(dbgSys, "[SC] SC_Exit.\n");
+				int exit_status;
+
+				exit_status = kernel->machine->ReadRegister(4);
+
+				SysExit(exit_status);
+
+				increasePC();
+				return;
+				ASSERTNOTREACHED();
+				break;
+			}
+
 			case SC_GetArgvs:
 			{
 				DEBUG(dbgSys, "[SC] SC_GetArgvs.\n");
@@ -520,7 +600,7 @@ void ExceptionHandler(ExceptionType which)
 				char* strn;
 
 				virtAddr = kernel->machine->ReadRegister(4);
-				strn = User2System(virtAddr, STRING_MAX_LEN);
+				strn = User2System(virtAddr, MAX_STRING_LEN);
                 DEBUG(dbgSys, "\tValue:"<<strn);
 				//extra check
 				if(!strn){
@@ -530,16 +610,11 @@ void ExceptionHandler(ExceptionType which)
 				}
 
 				int count;
-				count = 0;
-
-				while(strn[count] != '\0' && count<STRING_MAX_LEN){
-					SysPrintChar(strn[count]);
-					count++;
-				}
+				count = SysPrintString(strn);
 				
 				DEBUG(dbgSys, "\tString: " << strn << "\n");
 				int strn_len;
-				strn_len = strnlen(strn, STRING_MAX_LEN);
+				strn_len = strnlen(strn, MAX_STRING_LEN);
 				DEBUG(dbgSys, "\tString length: " << strn_len << "\n");
 				DEBUG(dbgSys, "\tPrinted: " << count << " character(s)\n");
 				kernel->machine->WriteRegister(2, count);

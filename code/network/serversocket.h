@@ -93,7 +93,7 @@ private:
     int ss_fd = -1;
     char ip_address[32];
     int port;;
-    int const MaxMailSize = 1024;
+    int const MaxMailSize = MAX_ALLOWED_BUFFER_SIZE;
     bool isRunning = false;
     //turn on server socket options
     int opt = true;

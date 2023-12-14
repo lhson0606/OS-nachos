@@ -16,21 +16,12 @@
 #include "serversocket.h"
 #include "openfile.h"
 #include "fdt.h"
+#include "ptable.h"
 
 /**
  * Systemcall interface
  * These are the operations the Nachos kernel needs to support
  */
-int SysExec(char* name){
-    OpenFile* oFile = kernel->fileSystem->Open(name);
-    if (oFile == NULL) {
-        DEBUG(dbgSys,"\n Exec:: Can't open this file.");
-        return -1;
-    }
-    delete oFile;
-    return kernel->pTab->ExecUpdate(name);
-}
-
 void SysHalt()
 {
   kernel->interrupt->Halt();
@@ -41,13 +32,13 @@ void SysHalt()
  * @param string The null-terminated string to print
  * @see ConsoleDriver::PutString
  */
-void SysPrintString(char *string)
+int SysPrintString(char *string)
 {
-  while(*string != '\0'){
-    kernel->synchConsoleOut->PutChar(*string);
-    string++;
-  }
+  int size = strnlen(string, MAX_ALLOWED_BUFFER_SIZE);
+
+  kernel->synchConsoleOut->PutString(string, size);
   // kernel->GetConsole()->PutString(string);
+  return size;
 }
 
 void exitWithError(char* msg){
@@ -462,6 +453,16 @@ int SysSSPollAccept(int ss_fd){
 
   //int res = serverSocket->pollAccept();
   return 0;
+}
+
+int SysExec(char* filename){
+  DEBUG(dbgThread, "\n\tSysExec received filename: " << filename);
+  return kernel->pTab->ExecUpdate(filename);
+}
+
+void SysExit(int status){
+  DEBUG(dbgThread, "\n\tSysExit received status: " << status);
+  kernel->pTab->ExitUpdate(status);
 }
 
 #endif /* ! __USERPROG_KSYSCALL_H__ */

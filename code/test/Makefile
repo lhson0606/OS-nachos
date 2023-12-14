@@ -113,7 +113,7 @@ PROGRAMS = unknownhost
 else
 # change this if you create a new test program!
 
-PROGRAMS = add halt shell matmult sort segments createfile nwtest echoclient server cat delete concatenate fileclient mytest copy e2et_file e2et_client e2et_server
+PROGRAMS = add halt shell matmult sort segments createfile nwtest echoclient server cat delete concatenate fileclient mytest copy e2et_file e2et_client e2et_server exec_add hello1 hello2
 endif
 
 all: $(PROGRAMS)
@@ -235,6 +235,24 @@ e2et_server.o: e2et_server.c
 e2et_server: e2et_server.o start.o
 	$(LD) $(LDFLAGS) start.o e2et_server.o -o e2et_server.coff
 	$(COFF2NOFF) e2et_server.coff e2et_server
+
+exec_add.o: exec_add.c
+	$(CC) $(CFLAGS) -c exec_add.c
+exec_add: exec_add.o start.o
+	$(LD) $(LDFLAGS) start.o exec_add.o -o exec_add.coff
+	$(COFF2NOFF) exec_add.coff exec_add
+
+hello1.o: hello1.c
+	$(CC) $(CFLAGS) -c hello1.c
+hello1: hello1.o start.o
+	$(LD) $(LDFLAGS) start.o hello1.o -o hello1.coff
+	$(COFF2NOFF) hello1.coff hello1
+
+hello2.o: hello2.c
+	$(CC) $(CFLAGS) -c hello2.c
+hello2: hello2.o start.o
+	$(LD) $(LDFLAGS) start.o hello2.o -o hello2.coff
+	$(COFF2NOFF) hello2.coff hello2
 
 clean:
 	$(RM) -f *.o *.ii

@@ -1,15 +1,14 @@
 #include "syscall.h"
 #include "copyright.h"
-#define MaxStrnLength 255
-#define MaxFileNameLength 32
+#include "user_utils.h"
 
 int main(int argc, char **argv){
     //create file
     int create_result = -1;
     char fileName[MaxFileNameLength];
-    char argvs[2][100];
+    char argvs[MaxArgvs][MaxArgvLength];
     int argsRes = -1;
-    argsRes = GetArgvs(1, argvs, 100);
+    argsRes = GetArgvs(1, argvs, MaxArgvLength);
 
     if (argsRes == -1 ){
         PrintStrn("Fail to read arguments!!");
@@ -17,11 +16,14 @@ int main(int argc, char **argv){
     }
 
     create_result = Create(argvs[0]);
+    PrintStrn("Create file \"");
+    PrintStrn(argvs[0]);
+    PrintStrn("\" result: ");
 
     if (create_result == -1){
-        PrintStrn("Create file fail\n");
+        PrintStrn("failed\n");
     } else {
-        PrintStrn("Create file success\n");
+        PrintStrn("success\n");
     }
 
     Halt();

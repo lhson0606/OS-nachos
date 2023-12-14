@@ -31,9 +31,9 @@ class SynchConsoleInput;
 class SynchConsoleOutput;
 class SynchDisk;
 class Semaphore;
-#include "bitmap.h"
-#include "stable.h"
-#include "ptable.h"
+class STable;
+class Bitmap;
+class PTable;
 
 class Kernel
 {
@@ -67,7 +67,6 @@ public:
   FileSystem *fileSystem;
   PostOfficeInput *postOfficeIn;
   PostOfficeOutput *postOfficeOut;
-
   Semaphore *addrLock;
   Bitmap *gPhysPageBitMap;
   STable *semTab;

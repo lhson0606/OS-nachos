@@ -1,8 +1,6 @@
 #include "syscall.h"
 #include "copyright.h"
-
-#define MaxBufferSize 1024
-#define MaxStrnLength 255
+#include "user_utils.h"
 
 int main(){
     int result = -1;
@@ -14,11 +12,22 @@ int main(){
     int bID = -1;
     int write_result = -1;
     int create_result = -1;
-    char buffer[1024];
+    char buffer[MaxBufferLength];
 
     char argvs[2][MaxStrnLength];
     int res = -1;
     res = GetArgvs(2, argvs, MaxStrnLength);
+
+    if (res == -1 ) {
+        PrintStrn("Fail to read arguments!!\n");
+        Halt();
+    }
+
+    PrintStrn("Recieved file paths: ");
+    PrintStrn(argvs[0]);
+    PrintStrn(" ");
+    PrintStrn(argvs[1]);
+    PrintStrn("\n");
 
     /*---------------------------------------------------------*/
     socketID = SocketTCP();
@@ -39,29 +48,40 @@ int main(){
         Halt();
     }
 
-    aID = Open(argvs[0], 1);
+    aID = Open(argvs[0], RW);
 
     if(aID != -1){
-        PrintStrn("Open file a.txt success\n");
+        PrintStrn("Open file ");
+        PrintStrn(argvs[0]);
+        PrintStrn(" success\n");
     }else{
-        PrintStrn("Open file fail\n");
+        PrintStrn("Open file ");
+        PrintStrn(argvs[0]);
+        PrintStrn(" fail\n");
         Halt();
     }
 
-    read_result = Read(buffer, MaxBufferSize, aID);
+    read_result = Read(buffer, MaxBufferLength, aID);
     buffer[read_result] = '\0';
 
     if(read_result != -1){
-        PrintStrn("Read file a.txt success\n");
+        PrintStrn("Read file ");
+        PrintStrn(argvs[0]);
+        PrintStrn(" success\n");
     }else{
-        PrintStrn("Read file a.txt fail\n");
+        PrintStrn("Read file ");
+        PrintStrn(argvs[0]);
+        PrintStrn(" fail\n");
         Halt();
     }
 
-    PrintStrn("Content of file a.txt:\n");
+    PrintStrn("Content of ");
+    PrintStrn(argvs[0]);
+    PrintStrn(":\n");
     PrintStrn(buffer);
+    PrintStrn("\n");
 
-    write_result = Write(buffer, MaxBufferSize, socketID);
+    write_result = Write(buffer, MaxBufferLength, socketID);
 
     if(write_result != -1){
         PrintStrn("Write to server success\n");
@@ -70,7 +90,7 @@ int main(){
         Halt();
     }
 
-    read_result = Receive(socketID, buffer, MaxBufferSize);
+    read_result = Receive(socketID, buffer, MaxBufferLength);
 
     if(read_result != -1){
         PrintStrn("Receive from server success\n");
@@ -86,28 +106,40 @@ int main(){
     create_result = Create(argvs[1]);
 
     if(create_result != -1){
-        PrintStrn("Create file b.txt success\n");
+        PrintStrn("Create file ");
+        PrintStrn(argvs[1]);
+        PrintStrn(" success\n");
     }else{
-        PrintStrn("Create file fail\n");
+        PrintStrn("Create file ");
+        PrintStrn(argvs[1]);
+        PrintStrn(" fail\n");
         Halt();
     }
 
-    bID = Open(argvs[1], 1);
+    bID = Open(argvs[1], RW);
 
     if(bID != -1){
-        PrintStrn("Open file b.txt success\n");
+        PrintStrn("Open file ");
+        PrintStrn(argvs[1]);
+        PrintStrn(" success\n");
     }else{
-        PrintStrn("Open file fail\n");
+        PrintStrn("Open file ");
+        PrintStrn(argvs[1]);
+        PrintStrn(" fail\n");
         Halt();
     }
 
     buffer[read_result] = '\0';
-    write_result = Write("hello", 5, bID);
+    write_result = Write(buffer, read_result, bID);
 
     if(write_result != -1){
-        PrintStrn("Write to file b.txt success\n");
+        PrintStrn("Write to file ");
+        PrintStrn(argvs[1]);
+        PrintStrn(" success\n");
     }else{
-        PrintStrn("Write to file fail\n");
+        PrintStrn("Write to file ");
+        PrintStrn(argvs[1]);
+        PrintStrn(" fail\n");
         Halt();
     }
 

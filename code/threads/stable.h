@@ -1,21 +1,30 @@
-//
-// Created by khuong on 12/7/23.
-//
+#ifndef _STABLE_H_
+#define _STABLE_H_
 
+#include "sem.h"
 #include "bitmap.h"
-#include "semaphore.h
+
+#define MAX_PROCESS 10
 #define MAX_SEMAPHORE 10
 
-class STable {
-private:
-    Bitmap* bm;
-    Semaphore* semTable[MAX_SEMAPHORE];
+class STable
+{ 
+public:// Initial the Sem object, the started value is null
+    // Remember to initial the bm object to use
+    STable();
 
-public:
-    STable(){};
-    ~STable(){};
-    int Create(char* name,int init);
-    int Wait(char* name);
-    int Signal(char* name);
-    int FindFreeSlot(int id);
+    ~STable();
+    // Check the semaphore name, create a new one if not already
+    int Create(char *name, int init);
+    // If the semaphore name already exists, call this->P() to execute it.
+    // If not, report an error in Wait, Signal function
+    int Wait(char *name);
+
+    int FindFreeSlot(int id); // Find an empty slot
+
+private:
+    Bitmap* bm; // Manage the free slot
+    Sem* semTab[MAX_SEMAPHORE];
 };
+
+#endif // _STABLE_H_

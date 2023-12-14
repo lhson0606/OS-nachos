@@ -1,41 +1,38 @@
-//
-// Created by khuong on 12/7/23.
-//
+#ifndef _PCB_H_
+#define _PCB_H_
 
-class PCB  {
-private:
-    Semaphore *joinsem;
-    Semaphore *exitsem;
-    Semaphore *multex;
+#include "synch.h"
 
-    int exitcode;
-    int numwait;
-
-    Thread* thread;
-    char filename[128];
+class PCB
+{
 
 public:
-    int parentID;
-    int processID;
-    PCB();
-    PCB(int id);
-    ~PCB();
+    int parentID; // The parent process’s ID
+    int pID; // The process ID
 
-    int Exec(char *filename, int pid);
-    int GetID();
-    int GetNumWait();
+    PCB(int id); // Constructor
+    ~PCB(); // Destructor
+    // Load the program has the name is “filename” and the process id is pid
+    int Exec(char* name,int pid); //Create a thread with the name is filename and the process id is pid
+    int GetID(); // Return the PID of the current process
+    int GetNumWait(); // Return the number of the waiting process
+    void JoinWait(); // The parent process wait for the child process finishes
+    void ExitWait(); // The child process finishes
+    void JoinRelease(); // The child process notice the parent process
+    void ExitRelease(); // The parent process accept to exit the child process
+    void IncNumWait(); // Increase the number of the waiting process
+    void DecNumWait(); // Decrease the number of the waiting process
+    void SetExitCode(int); // Set the exit code for the process
+    int GetExitCode(); // Return the exitcode
+    void SetFileName(char*); // Set the process name
+    char* GetFileName(); // Return the process name
 
-    void JoinWait();
-    void ExitWait();
-    void JoinRelease();
-    void ExitRelease();
-
-    void IncNumWait();
-    void DecNumwait();
-
-    void SetExitCode(int ec);
-    int GetExitCode();
-
-    void SetFileName(char *fn);
-    char* GetFileName();
+private:
+    Semaphore* joinsem; // semaphore for join process
+    Semaphore* exitsem; // semaphore for exit process
+    Semaphore* multex; // exclusive access semaphore
+    int exitcode;
+    int numwait; // the number of join process
 };
+
+#endif // _PCB_H_

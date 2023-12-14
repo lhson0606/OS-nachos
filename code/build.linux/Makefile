@@ -273,8 +273,8 @@ THREAD_H = ../threads/alarm.h\
 	../threads/thread.h\
 	../threads/pcb.h\
 	../threads/ptable.h\
-	../threads/stable.h\
-	../threads/semaphore.h\
+	../threads/sem.h\
+	../threads/stable.h
 
 THREAD_C = ../threads/alarm.cc\
 	../threads/kernel.cc\
@@ -284,11 +284,11 @@ THREAD_C = ../threads/alarm.cc\
 	../threads/synchlist.cc\
 	../threads/thread.cc\
 	../threads/pcb.cc\
-    ../threads/ptable.cc\
-    ../threads/stable.cc\
-    ../threads/semaphore.cc\
+	../threads/ptable.cc\
+	../threads/sem.cc\
+	../threads/stable.cc
 
-THREAD_O = alarm.o kernel.o main.o scheduler.o synch.o thread.o
+THREAD_O = alarm.o kernel.o main.o scheduler.o synch.o thread.o pcb.o ptable.o sem.o stable.o
 
 USERPROG_H = ../userprog/addrspace.h\
 	../userprog/syscall.h\
