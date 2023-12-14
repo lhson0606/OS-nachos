@@ -113,7 +113,7 @@ PROGRAMS = unknownhost
 else
 # change this if you create a new test program!
 
-PROGRAMS = add halt shell matmult sort segments createfile nwtest echoclient server cat delete concatenate fileclient mytest copy e2et_file e2et_client e2et_server exec_add hello1 hello2
+PROGRAMS = add halt shell matmult sort segments createfile nwtest echoclient server cat delete concatenate fileclient mytest copy e2et_file e2et_client e2et_server exec test1 test2
 endif
 
 all: $(PROGRAMS)
@@ -236,23 +236,23 @@ e2et_server: e2et_server.o start.o
 	$(LD) $(LDFLAGS) start.o e2et_server.o -o e2et_server.coff
 	$(COFF2NOFF) e2et_server.coff e2et_server
 
-exec_add.o: exec_add.c
-	$(CC) $(CFLAGS) -c exec_add.c
-exec_add: exec_add.o start.o
-	$(LD) $(LDFLAGS) start.o exec_add.o -o exec_add.coff
-	$(COFF2NOFF) exec_add.coff exec_add
+exec.o: exec.c
+	$(CC) $(CFLAGS) -c exec.c
+exec: exec.o start.o
+	$(LD) $(LDFLAGS) start.o exec.o -o exec.coff
+	$(COFF2NOFF) exec.coff exec
 
-hello1.o: hello1.c
-	$(CC) $(CFLAGS) -c hello1.c
-hello1: hello1.o start.o
-	$(LD) $(LDFLAGS) start.o hello1.o -o hello1.coff
-	$(COFF2NOFF) hello1.coff hello1
+test1.o: test1.c
+	$(CC) $(CFLAGS) -c test1.c
+test1: test1.o start.o
+	$(LD) $(LDFLAGS) start.o test1.o -o test1.coff
+	$(COFF2NOFF) test1.coff test1
 
-hello2.o: hello2.c
-	$(CC) $(CFLAGS) -c hello2.c
-hello2: hello2.o start.o
-	$(LD) $(LDFLAGS) start.o hello2.o -o hello2.coff
-	$(COFF2NOFF) hello2.coff hello2
+test2.o: test2.c
+	$(CC) $(CFLAGS) -c test2.c
+test2: test2.o start.o
+	$(LD) $(LDFLAGS) start.o test2.o -o test2.coff
+	$(COFF2NOFF) test2.coff test2
 
 clean:
 	$(RM) -f *.o *.ii
