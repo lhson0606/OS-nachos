@@ -465,4 +465,9 @@ void SysExit(int status){
   kernel->pTab->ExitUpdate(status);
 }
 
+int SysJoin(int pid){
+  DEBUG(dbgThread, "\n\tSysJoin received pid: " << pid);
+  return kernel->pTab->JoinUpdate(pid);
+}
+
 #endif /* ! __USERPROG_KSYSCALL_H__ */

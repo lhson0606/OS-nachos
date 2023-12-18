@@ -26,13 +26,17 @@ public:
     int GetExitCode(); // Return the exitcode
     void SetFileName(char*); // Set the process name
     char* GetFileName(); // Return the process name
+    int GetParentID(); // Return the parent process ID
+    void Exit(); // Exit the process
 
 private:
     Semaphore* joinsem; // semaphore for join process
     Semaphore* exitsem; // semaphore for exit process
     Semaphore* multex; // exclusive access semaphore
+    Semaphore* shouldExit; // semaphore waiting for child process to exit
     int exitcode;
     int numwait; // the number of join process
+    char* filename; // the name of the process
 };
 
 #endif // _PCB_H_

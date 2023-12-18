@@ -35,7 +35,11 @@ const int STACK_FENCEPOST = 0xdedbeef;
 
 Thread::Thread(char* threadName)
 {
-    name = threadName;
+    int nameLength = strlen(threadName) + 1;
+    ASSERT(nameLength <= 32 && nameLength > 0);
+    name = new char[nameLength];
+    strncpy(name,threadName,nameLength);
+    id = -1;
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
@@ -49,7 +53,11 @@ Thread::Thread(char* threadName)
 
 Thread::Thread(char* debugName, int id)
 {
-    name = debugName;
+    int nameLength = strlen(debugName) + 1;
+    ASSERT(nameLength <= 32 && nameLength > 0);
+    name = new char[nameLength];
+    this->id = id;
+    strncpy(name,debugName,nameLength);
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
@@ -80,9 +88,8 @@ Thread::~Thread()
     ASSERT(this != kernel->currentThread);
     if (stack != NULL)
 	DeallocBoundedArray((char *) stack, StackSize * sizeof(int));
-    //#todo delete threa name? We may only delete the name if it's called via Thread(char* debugName, int id)
-    //due to our implementation of PCB
-    //#todo find another way to delete the name or just leave it as it is
+    //fixed: our name is always allocated by us
+    delete [] name;
 }
 
 //----------------------------------------------------------------------

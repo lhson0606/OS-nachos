@@ -15,10 +15,9 @@ PTable::~PTable()
 
 int PTable::ExecUpdate(char* filename)
 {
-    bmsem->P();
-
     int freeSlot = GetFreeSlot();
-    DEBUG(dbgThread, "Free slot: " << freeSlot);
+    //call after we get the free slot because we will obtain lock in GetFreeSlot()
+    bmsem->P();
 
     if(freeSlot == -1)
     {
@@ -31,57 +30,126 @@ int PTable::ExecUpdate(char* filename)
     pcb[freeSlot] = aNewPcb;
     //mark the slot is used
     bm->Mark(freeSlot);
+
     bmsem->V();
+    //we will release the lock before calling IncNumWait() in parent process
+    int parentID = kernel->currentThread->getId();
+    if(parentID != -1)
+    {
+        PCB* parent = pcb[parentID];
+        parent->IncNumWait();
+    }
 
-    return aNewPcb->Exec(filename, freeSlot);
+    aNewPcb->Exec(filename, freeSlot);
+    return freeSlot;
 }
 
-int PTable::ExitUpdate(int)
+int PTable::ExitUpdate(int exitCode)
 {
-    kernel->currentThread->Finish();
-    //#todo: implement this(release resources include memory, files, etc. hoding by the process)
-    return -1;
+    int pid = kernel->currentThread->getId();
+
+    if(pid == -1)
+    {
+        //main process
+        return -1;
+    }
+
+    ASSERT(IsExist(pid));//#todo: implement this instead of assert
+   
+    PCB* curPcb = pcb[pid];
+    ASSERT(curPcb != NULL);
+    int parentID = curPcb->GetParentID();
+
+    curPcb->SetExitCode(exitCode);
+    curPcb->JoinRelease();
+    curPcb->ExitRelease();
+
+    if(parentID != -1)
+    {
+        PCB* parent = pcb[parentID];
+        parent->DecNumWait();
+        //wait for the parent to accept the exit
+        curPcb->ExitWait();
+    }
+   
+    curPcb->Exit();
+    //remove the process from the table
+    Remove(pid);
+    return exitCode;
 }
 
-int PTable::JoinUpdate(int)
+int PTable::JoinUpdate(int pID)
 {
-    return -1;
+    //should only call by the parent process so we don't need to obtain the lock
+    if(!IsExist(pID))
+    {
+        ASSERTNOTREACHED();
+        return -1;
+    }
+
+    PCB* childPcb = pcb[pID];
+    ASSERT(childPcb != NULL);//we should alter this to something instead of assert
+    DEBUG(dbgThread, kernel->currentThread->getName() << " waiting " << childPcb->GetFileName() << " to finish\n");
+    childPcb->JoinWait();
+    int exitCode = childPcb->GetExitCode();
+    return exitCode;
 }
 
 int PTable::GetFreeSlot()
 {
+    //we need mutex here, multiple process can call this function at the same time
+    bmsem->P();
     //iterate through the table, return the first free slot
     for(int i = 0; i < psize; i++)
     {
         if(!bm->Test(i))
         {
+            bmsem->V();
             return i;
         }
     }
+    bmsem->V();
     //if no free slot is found, return -1
     return -1;
 }
 
 bool PTable::IsExist(int pid)
 {
-    //iterate through the table, return true if the pid is found
-    for(int i = 0; i < psize; i++)
+    //we need mutex here, multiple process can call this function at the same time
+    DEBUG(dbgThread, "\n\tReached 1\n");
+    bmsem->P();
+    DEBUG(dbgThread, "\n\tReached 2\n");
+    if(pid <0 || pid >= psize)
     {
-        if(pcb[i]->GetID() == pid)
-        {
-            return true;
-        }
+        bmsem->V();
+        return false;
     }
+    PCB* curPcb = pcb[pid];
     //if no pid is found, return false
-    return false;
+    if(curPcb == NULL)
+    {
+        bmsem->V();
+        return false;
+    }
+
+    bmsem->V();
+    return true;
 }
 
 void PTable::Remove(int pid)
 {
-
+    bmsem->P();
+    //remove the process from the table
+    bm->Clear(pid);
+    PCB* curPcb = pcb[pid];
+    ASSERT(curPcb != NULL);
+    delete curPcb;
+    pcb[pid] = NULL;
+    bmsem->V();
 }
 
 char* PTable::GetFileName(int id)
 {
-    return NULL;
+    if(id == -1) return "main";
+    return pcb[id]->GetFileName();
 }

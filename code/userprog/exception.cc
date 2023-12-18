@@ -195,13 +195,17 @@ void ExceptionHandler(ExceptionType which)
 			{
 				DEBUG(dbgSys, "[SC] SC_Exec.\n");
 				char* exec_name;
+				int exec_result = -1;
 
 				virtAddr = kernel->machine->ReadRegister(4);
 				exec_name = User2System(virtAddr, FILE_NAME_MAX_LEN);
 
-				SysExec(exec_name);
+				exec_result = SysExec(exec_name);
 
-				//the thread will use exec_name, do not delete it here
+				kernel->machine->WriteRegister(2, exec_result);
+
+				//the thread will use exec_name, do not delete it here?
+				delete[] exec_name;
 				increasePC();
 				return;
 				ASSERTNOTREACHED();
@@ -216,6 +220,24 @@ void ExceptionHandler(ExceptionType which)
 				exit_status = kernel->machine->ReadRegister(4);
 
 				SysExit(exit_status);
+
+				increasePC();
+				return;
+				ASSERTNOTREACHED();
+				break;
+			}
+
+			case SC_Join:
+			{
+				DEBUG(dbgSys, "[SC] SC_Join.\n");
+				int join_thread_id;
+				int join_result;
+
+				join_thread_id = kernel->machine->ReadRegister(4);
+
+				join_result = SysJoin(join_thread_id);
+
+				kernel->machine->WriteRegister(2, join_result);
 
 				increasePC();
 				return;

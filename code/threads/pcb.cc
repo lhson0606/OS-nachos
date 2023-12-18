@@ -3,12 +3,12 @@
 
 void processCreator(void* arg)
 {
-    DEBUG(dbgThread, "Entering processCreator");
-    //I have no idea what this does :)
  AddrSpace *space = (AddrSpace*)arg;
  if(space->Load(space->executable)){
+    DEBUG(dbgThread, "New process created "<< kernel->currentThread->getName() << " with pid " << kernel->currentThread->getId() << "\n");
     space->Execute();
  }
+
  ASSERTNOTREACHED();
 } 
 
@@ -17,9 +17,15 @@ PCB::PCB(int id)
 {
     parentID = kernel->currentThread->getId(); /* create this function by yourself */
     pID = id;
+    int length = strlen(kernel->currentThread->getName());
+    filename = new char[length+1];
+    strcpy(filename, kernel->currentThread->getName());
+    filename[length] = '\0';
+    DEBUG(dbgThread, "New PCB created "<<filename << " with pid " << id << "\n");
     joinsem = new Semaphore("joinsem", 0);
     exitsem = new Semaphore("exitsem", 0);
     multex = new Semaphore("multex", 1);
+    shouldExit = new Semaphore("shouldExit", 1);
 }
 
 PCB::~PCB()
@@ -27,11 +33,13 @@ PCB::~PCB()
     delete joinsem;
     delete exitsem;
     delete multex;
+    delete shouldExit;
+    delete[] filename;
 }
 
 int PCB::Exec(char* tname,int pid)
 {
-    DEBUG(dbgThread, "Entering Exec");
+    DEBUG(dbgThread, "\n\t"<<kernel->currentThread->getName() << " execing " << tname << " with pid " << pid << "\n");
     multex->P();
 
     OpenFile *executable = kernel->fileSystem->Open(tname);
@@ -44,15 +52,9 @@ int PCB::Exec(char* tname,int pid)
     t->space = space;      // jump to the user progam
 
     t->Fork(&processCreator, (void*)space);
-    DEBUG(dbgThread, "New thread created");
-    DEBUG(dbgThread, "Entering processCreator");
-    //I have no idea what this does :)
-    // if(space->Load(space->executable)){
-    //     multex->V();
-    //     space->Execute();
-    // }
     
     multex->V();
+    return pid;
 }
 
 int PCB::GetID()
@@ -62,55 +64,92 @@ int PCB::GetID()
 
 int PCB::GetNumWait()
 {
-    return -1;
+    return numwait;
 } 
 
 void PCB::JoinWait()
 {
-
+    //wait for the child process to exit
+    joinsem->P();
 }
 
 void PCB::ExitWait()
 {
-
+    //allow the child process to exit
+    exitsem->P();
+    //releae the exitSem so that the other child process can exit
+    exitsem->V();
 }
 
 void PCB::JoinRelease()
 {
-
+    //release the join semaphore
+    joinsem->V();
 }
 
 void PCB::ExitRelease()
 {
-
+    //release the exit semaphore, this will be called by the parent process
+    exitsem->V();
 }
 
 void PCB::IncNumWait()
 {
+    multex->P();
+    DEBUG(dbgThread, kernel->currentThread->getName() << " increasing " << numwait << " of process " << pID << " to " << numwait + 1 << "\n");
+    //if we are the first process to wait, we need to obtain the shouldExit semaphore
+    if(numwait == 0)
+    {
+        shouldExit->P();
+    }
 
+    numwait++;
+    multex->V();
 }
 
 void PCB::DecNumWait()
 {
+    multex->P();
+    numwait--;
+    //if we are the last child process to exit, we need to release the shouldExit semaphore
+    if(numwait == 0)
+    {
+        shouldExit->V();
+    }
 
+    multex->V();
 }
 
-void PCB::SetExitCode(int)
+void PCB::SetExitCode(int exitCode)
 {
-
+    this->exitcode = exitCode;
 }
 
 int PCB::GetExitCode()
 {
-    return -1;
+    return exitcode;
 }
 
 void PCB::SetFileName(char*)    
 {
-
+    //thinking about this (allocation and deallocation name) since we are using char* instead of string
+    //what will happen if we accidentally delete the name of the process that has not been allocated yet?
 }
 
 char* PCB::GetFileName()
 {
-    return NULL;
+    //the caller should not delete the name of the process
+    return filename;
+}
+
+int PCB::GetParentID()
+{
+    return parentID;
+}
+
+void PCB::Exit(){
+    shouldExit->P();
+    DEBUG(dbgThread, GetFileName() << " exiting with exitcode " << exitcode << "\n");
+    //#todo: implement this(release resources include memory, files, etc. hoding by the process)
+    kernel->currentThread->Finish();
 }

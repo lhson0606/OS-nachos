@@ -151,6 +151,18 @@ AddrSpace::AddrSpace()
 
 AddrSpace::~AddrSpace()
 {
+    //unmap the physical pages
+    //we will iterate through the page table and free the physical pages
+    kernel->addrLock->P();
+
+    for(int i = 0; i < numPages; i++)
+    {
+        DEBUG(dbgAddr, "Freeing physical page " << pageTable[i].physicalPage);
+        kernel->gPhysPageBitMap->Clear(pageTable[i].physicalPage);
+    }
+
+    kernel->addrLock->V();
+
    delete pageTable;
 }
 
