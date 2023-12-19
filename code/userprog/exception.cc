@@ -359,32 +359,29 @@ void ExceptionHandler(ExceptionType which)
 				char* temp = NULL;
 				int write_count = 0;
 				char** data = NULL;
+				int result = 0;
 
 				count = kernel->machine->ReadRegister(4);
 				virtAddr = kernel->machine->ReadRegister(5);
 				size = kernel->machine->ReadRegister(6);
 
-				if(kernel->currentThread->getId() == -1){
-					data = kernel->userArgs;
-					if(count>kernel->userArgc){
-						count = kernel->userArgc;
-					}
-				}else{
-					data = kernel->pTab->GetPcb(kernel->currentThread->getId())->GetArgv();
-					int process_argc = kernel->pTab->GetPcb(kernel->currentThread->getId())->GetArgc();
-					if(count>process_argc){
-						count = process_argc;
-					}
-				}
+				ASSERT(count>0);
+				ASSERT(kernel->currentThread->getId()>-1);
+
+				data = kernel->pTab->GetPcb(kernel->currentThread->getId())->GetArgv();
+				int process_argc = kernel->pTab->GetPcb(kernel->currentThread->getId())->GetArgc();
+				DEBUG(dbgSys, "\tProcess argc: " << process_argc << "\n");
 				
 				temp = new char[size*count];
 				memset(temp, 0, size);
-
+				//first argvs is the file name, user argvs start from index 1
 				//write argvs to temp buffer
-				for(i = 0; i<count; i++){
+				for(i = 1; i<process_argc && result != count; i++){
 					for(j = 0; j<strnlen(data[i], size); j++){
-						temp[i*size + j] = data[i][j];
+						temp[(i-1)*size + j] = data[i][j];//i-1 instead of i because we skip the first argv
 					}
+					result++;
+					DEBUG(dbgSys, "\tArgv[" << i << "]: " << data[i] << "\n");
 				}
 
 				//write temp buffer to user space
@@ -394,7 +391,8 @@ void ExceptionHandler(ExceptionType which)
 					write_count++;
 				} while (write_count < size*count);
 
-				kernel->machine->WriteRegister(2, count);
+				DEBUG(dbgSys, "\tResult argc: " << result << "\n");
+				kernel->machine->WriteRegister(2, result);
 
 				delete[] temp;
 				increasePC();

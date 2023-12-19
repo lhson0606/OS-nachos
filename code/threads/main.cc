@@ -286,23 +286,7 @@ if (printFileName != NULL) {
 
     // finally, run an initial user program if requested to do so
     if (userProgName != NULL) {
-        DEBUG(dbgThread, "Initializing user program: "<<userProgName);
-        OpenFile *executable = kernel->fileSystem->Open(userProgName);
-        AddrSpace *space = new AddrSpace(executable);
-        ASSERT(space != (AddrSpace *)NULL);
-        if (space->Load(executable)) {  // load the program into the space
-	     space->Execute();              // run the program
-
-    // DEBUG(dbgThread, "Initializing user program: "<<userProgName);
-    //   AddrSpace *space = new AddrSpace();
-    //   ASSERT(space != (AddrSpace *)NULL);
-    //   if (space->Load(userProgName)) {  // load the program into the space
-	// space->Execute();   
-	// ASSERTNOTREACHED();            // Execute never returns
-
-    //#todo fixed this to multi-programming version
-        }
-        //kernel->pTab->ExecUpdate(userProgName);
+        kernel->pTab->StartMainThread(userProgName);
     }
 
     // If we don't run a user program, we may get here.

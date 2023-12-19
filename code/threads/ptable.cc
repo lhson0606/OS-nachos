@@ -28,8 +28,6 @@ int PTable::ExecUpdate(char* filename)
     PCB* aNewPcb = new PCB(freeSlot);
     //add our new pcb to the table
     pcb[freeSlot] = aNewPcb;
-    //mark the slot is used
-    bm->Mark(freeSlot);
 
     bmsem->V();
     //we will release the lock before calling IncNumWait() in parent process
@@ -59,8 +57,6 @@ int PTable::ExecVUpdate(int argc, char* argv[]){
     aNewPcb->SetArgvs(argc, argv);
     //add our new pcb to the table
     pcb[freeSlot] = aNewPcb;
-    //mark the slot is used
-    bm->Mark(freeSlot);
 
     bmsem->V();
     //we will release the lock before calling IncNumWait() in parent process
@@ -84,12 +80,7 @@ PCB* PTable::GetPcb(int id)
 int PTable::ExitUpdate(int exitCode)
 {
     int pid = kernel->currentThread->getId();
-
-    if(pid == -1)
-    {
-        //now we allow main thread to call exit, may want to change this in the future
-        return -1;
-    }
+    DEBUG(dbgThread, kernel->currentThread->getName()<< " pId "<< pid << " exiting with code " << exitCode << "\n");
     
     ASSERT(IsExist(pid));//#todo: implement this instead of assert
    
@@ -106,15 +97,18 @@ int PTable::ExitUpdate(int exitCode)
         PCB* parent = pcb[parentID];
         parent->DecNumWait();
         //wait for the parent to accept the exit
-        curPcb->ExitWait();
+        parent->ExitWait();
     }
-   
-    curPcb->Exit();
-    //remove the process from the table
-    Remove(pid);
-    kernel->currentThread->Finish();
-    //won't return exit code. This is just to avoid warning
-    ASSERTNOTREACHED();
+
+    if(pid ==0){
+        kernel->interrupt->Halt();
+    }else{
+        curPcb->Exit();    
+        //remove the process from the table
+        Remove(pid);
+        kernel->currentThread->Finish();
+    }
+    
     return exitCode;
 }
 
@@ -139,18 +133,9 @@ int PTable::GetFreeSlot()
 {
     //we need mutex here, multiple process can call this function at the same time
     bmsem->P();
-    //iterate through the table, return the first free slot
-    for(int i = 1; i < psize; i++)
-    {
-        if(!bm->Test(i))
-        {
-            bmsem->V();
-            return i;
-        }
-    }
+    int result = bm->FindAndSet();
     bmsem->V();
-    //if no free slot is found, return -1
-    return -1;
+    return result;
 }
 
 bool PTable::IsExist(int pid)
@@ -193,6 +178,31 @@ char* PTable::GetFileName(int id)
     return pcb[id]->GetFileName();
 }
 
-void StartMainThread(char* filename){
+void PTable::StartMainThread(char* filename){
+    DEBUG(dbgThread, "Initializing user program: "<<filename);
+    OpenFile *executable = kernel->fileSystem->Open(filename);
+    AddrSpace *space = new AddrSpace(executable);
+    PCB* mainPcb = new PCB(0);
+    pcb[0] = mainPcb;
+    char** userArgs = new char*[kernel->userArgc+1];
+    int length = strlen(filename);
+    userArgs[0] = new char[length+1];
+    strcpy(userArgs[0], filename);
+    userArgs[0][length] = '\0';
+    kernel->currentThread->setId(0);
 
+    for(int i = 1; i < kernel->userArgc+1; i++){
+        int length = strlen(kernel->userArgs[i-1]);
+        userArgs[i] = new char[length+1];
+        strcpy(userArgs[i], kernel->userArgs[i-1]);
+        userArgs[i][length] = '\0';
+    }
+
+    mainPcb->SetArgvs(kernel->userArgc+1, userArgs);
+    bm->Mark(0);
+
+    ASSERT(space != (AddrSpace *)NULL);
+    if (space->Load(executable)) {  // load the program into the space
+        space->Execute();              // run the program
+    }
 }

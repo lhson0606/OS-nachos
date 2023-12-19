@@ -15,7 +15,12 @@ void processCreator(void* arg)
 
 PCB::PCB(int id)
 {
-    parentID = kernel->currentThread->getId(); /* create this function by yourself */
+    if(id == 0)//our main thread
+        parentID = -1;
+    else{
+        parentID = kernel->currentThread->getId();
+    }
+    
     pID = id;
     joinsem = new Semaphore("joinsem", 0);
     exitsem = new Semaphore("exitsem", 0);
@@ -30,7 +35,7 @@ PCB::~PCB()
     delete multex;
     delete shouldExit;
     delete[] filename;
-    //#todo delete the userArgs
+    
 }
 
 int PCB::Exec(char* tname,int pid)

@@ -463,3 +463,7 @@ Thread::getId() {
     return id; 
 }
 
+void
+Thread::setId(int id) { 
+    this->id = id; 
+}

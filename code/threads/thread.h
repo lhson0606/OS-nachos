@@ -106,6 +106,7 @@ class Thread {
     void Print() { cout << name; }
     void SelfTest();		// test whether thread impl is working
     int getId();
+    void setId(int id);
   private:
     int id = -1;
     // some of the private data for this class is listed above

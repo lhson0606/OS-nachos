@@ -41,7 +41,7 @@ private:
     int numwait; // the number of join process
     char* filename; // the name of the process
     char *userArgs[MAX_ARG_NUM]; // arguments of the process
-    int userArgc; // number of arguments of the process
+    int userArgc = 0; // number of arguments of the process
 };
 
 #endif // _PCB_H_

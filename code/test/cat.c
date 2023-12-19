@@ -18,7 +18,7 @@ int main(int argc, char **argv){
 
     if (fileID == -1){
         PrintStrn("Can not open file\n");
-        Halt();
+        Exit(-1);
     }else{
         PrintStrn("Open file successfully\n");
     }
@@ -28,7 +28,7 @@ int main(int argc, char **argv){
 
     if (read_result == -1){
         PrintStrn("Can not read file\n");
-        Halt();
+        Exit(-1);
     } else {
         PrintStrn("Read file successfully\n");
         PrintStrn("File content: \n");
@@ -36,5 +36,5 @@ int main(int argc, char **argv){
         PrintStrn("\n");
     }
 
-    Halt();
+    Exit(0);
 }
