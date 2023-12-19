@@ -1,9 +1,9 @@
 #include "sem.h"
 
-Sem::Sem(char* na, int i)
+Sem::Sem(char* sname, int permits)
 {
-    strcpy(this->name, na);
-    sem = new Semaphore(this->name, i);
+    strcpy(this->name, sname);
+    sem = new Semaphore(this->name, permits);
 }
 
 Sem::~Sem() // Destruct the Sem object

@@ -50,10 +50,10 @@ int PTable::ExitUpdate(int exitCode)
 
     if(pid == -1)
     {
-        //main process
+        //now we allow main thread to call exit, may want to change this in the future
         return -1;
     }
-
+    
     ASSERT(IsExist(pid));//#todo: implement this instead of assert
    
     PCB* curPcb = pcb[pid];
@@ -75,6 +75,9 @@ int PTable::ExitUpdate(int exitCode)
     curPcb->Exit();
     //remove the process from the table
     Remove(pid);
+    kernel->currentThread->Finish();
+    //won't return exit code. This is just to avoid warning
+    ASSERTNOTREACHED();
     return exitCode;
 }
 
@@ -116,9 +119,7 @@ int PTable::GetFreeSlot()
 bool PTable::IsExist(int pid)
 {
     //we need mutex here, multiple process can call this function at the same time
-    DEBUG(dbgThread, "\n\tReached 1\n");
     bmsem->P();
-    DEBUG(dbgThread, "\n\tReached 2\n");
     if(pid <0 || pid >= psize)
     {
         bmsem->V();
@@ -140,6 +141,7 @@ void PTable::Remove(int pid)
 {
     bmsem->P();
     //remove the process from the table
+    DEBUG(dbgThread, "PTable removing pid " << pid << "\n");
     bm->Clear(pid);
     PCB* curPcb = pcb[pid];
     ASSERT(curPcb != NULL);

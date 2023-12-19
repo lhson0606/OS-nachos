@@ -19,8 +19,11 @@ public:// Initial the Sem object, the started value is null
     // If the semaphore name already exists, call this->P() to execute it.
     // If not, report an error in Wait, Signal function
     int Wait(char *name);
+    // If the semaphore name already exists, call this->V() to execute it.
+    // If not, report an error in Wait, Signal function
+    int Signal(char *name);
 
-    int FindFreeSlot(int id); // Find an empty slot
+    int FindFreeSlot(); // Find an empty slot
 
 private:
     Bitmap* bm; // Manage the free slot

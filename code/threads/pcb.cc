@@ -17,11 +17,6 @@ PCB::PCB(int id)
 {
     parentID = kernel->currentThread->getId(); /* create this function by yourself */
     pID = id;
-    int length = strlen(kernel->currentThread->getName());
-    filename = new char[length+1];
-    strcpy(filename, kernel->currentThread->getName());
-    filename[length] = '\0';
-    DEBUG(dbgThread, "New PCB created "<<filename << " with pid " << id << "\n");
     joinsem = new Semaphore("joinsem", 0);
     exitsem = new Semaphore("exitsem", 0);
     multex = new Semaphore("multex", 1);
@@ -39,7 +34,11 @@ PCB::~PCB()
 
 int PCB::Exec(char* tname,int pid)
 {
-    DEBUG(dbgThread, "\n\t"<<kernel->currentThread->getName() << " execing " << tname << " with pid " << pid << "\n");
+    int length = strlen(tname);
+    filename = new char[length+1];
+    strcpy(filename, tname);
+    filename[length] = '\0';
+    DEBUG(dbgThread, "\n\t"<<kernel->currentThread->getName() << " execing " << filename << " with pid " << pid << "\n");
     multex->P();
 
     OpenFile *executable = kernel->fileSystem->Open(tname);
@@ -151,5 +150,4 @@ void PCB::Exit(){
     shouldExit->P();
     DEBUG(dbgThread, GetFileName() << " exiting with exitcode " << exitcode << "\n");
     //#todo: implement this(release resources include memory, files, etc. hoding by the process)
-    kernel->currentThread->Finish();
 }

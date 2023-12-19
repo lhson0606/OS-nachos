@@ -18,40 +18,45 @@
 /* system call codes -- used by the stubs to tell the kernel which system call
  * is being asked for
  */
-#define SC_Halt		    0
-#define SC_Exit		    1
-#define SC_Exec		    2
-#define SC_Join		    3
-#define SC_Create	    4
-#define SC_Remove       5
-#define SC_Open		    6
-#define SC_Read		    7
-#define SC_Write	    8
-#define SC_Seek         9
-#define SC_Close        10
-#define SC_ThreadFork	11
-#define SC_ThreadYield	12
-#define SC_ExecV	    13
-#define SC_ThreadExit   14
-#define SC_ThreadJoin   15
+#define SC_Halt		        0
+#define SC_Exit		        1
+#define SC_Exec		        2
+#define SC_Join		        3
+#define SC_Create	        4
+#define SC_Remove           5
+#define SC_Open		        6
+#define SC_Read		        7
+#define SC_Write	        8
+#define SC_Seek             9
+#define SC_Close            10
+#define SC_ThreadFork	    11
+#define SC_ThreadYield	    12
+#define SC_ExecV	        13
+#define SC_ThreadExit       14
+#define SC_ThreadJoin       15
 
 //command line arguments
 #define SC_GetArgvs         20
 
 //Arithmetic operations
-#define SC_Add		    42
+#define SC_Add		        42
 
-//Console operations
-#define SC_PrintStrn	50
+//Console operations    
+#define SC_PrintStrn	    50
 
-//Socket operations
-#define SC_SocketTCP	60
-#define SC_Connect		61
-#define SC_Send			62
-#define SC_Receive		63
-#define SC_Disconnect	64
-#define SC_ServerCreate    65
-#define SC_ServerListen    66
+//Socket operations 
+#define SC_SocketTCP	    60
+#define SC_Connect		    61
+#define SC_Send			    62
+#define SC_Receive		    63
+#define SC_Disconnect	    64
+#define SC_ServerCreate     65
+#define SC_ServerListen     66
+
+//semaphore
+#define SC_CreateSem        69
+#define SC_WaitSem          70
+#define SC_SignalSem        71
 
 #ifndef IN_ASM
 
@@ -255,6 +260,14 @@ int ThreadJoin(ThreadId id);
  * Deletes current thread and returns ExitCode to every waiting lokal thread.
  */
 void ThreadExit(int ExitCode);
+
+int CreateSemaphore(char* name, int semval);
+
+int Wait(char* name);
+
+int Signal(char* name);
+
+SpaceId ExecV(int argc, char* argv[]);
 
 #endif /* IN_ASM */
 

@@ -83,8 +83,8 @@ Thread::Thread(char* debugName, int id)
 
 Thread::~Thread()
 {
-    DEBUG(dbgThread, "Deleting thread: " << name);
-
+    DEBUG(dbgThread, "Deleting addspacce of thread: " << name);
+    delete space;
     ASSERT(this != kernel->currentThread);
     if (stack != NULL)
 	DeallocBoundedArray((char *) stack, StackSize * sizeof(int));
@@ -230,7 +230,7 @@ Thread::Yield ()
     
     ASSERT(this == kernel->currentThread);
     
-    DEBUG(dbgThread, "Yielding thread: " << name);
+    //DEBUG(dbgThread, "Yielding thread: " << name);
     
     nextThread = kernel->scheduler->FindNextToRun();
     if (nextThread != NULL) {
@@ -268,7 +268,7 @@ Thread::Sleep (bool finishing)
     ASSERT(this == kernel->currentThread);
     ASSERT(kernel->interrupt->getLevel() == IntOff);
     
-    DEBUG(dbgThread, "Sleeping thread: " << name);
+    //DEBUG(dbgThread, "Sleeping thread: " << name);
 
     status = BLOCKED;
     while ((nextThread = kernel->scheduler->FindNextToRun()) == NULL)

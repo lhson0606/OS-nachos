@@ -3,12 +3,14 @@
 
 #include "synch.h"
 
+#define SEM_NAME_MAX_LEN 64
+
 class Sem
 { 
 public:
     // Initial the Sem object, the started value is null
     // Remember to initial the Sem to use
-    Sem(char* na, int i);
+    Sem(char* sname, int permits);
 
     ~Sem();
 
@@ -19,7 +21,7 @@ public:
     char* GetName();
 
 private:
-    char name[50]; // The semaphore nameSemaphore* sem; // Create semaphore for management
+    char name[SEM_NAME_MAX_LEN]; // The semaphore nameSemaphore* sem; // Create semaphore for management
     Semaphore* sem;
 };
 

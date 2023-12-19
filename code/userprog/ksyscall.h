@@ -17,6 +17,7 @@
 #include "openfile.h"
 #include "fdt.h"
 #include "ptable.h"
+#include "stable.h"
 
 /**
  * Systemcall interface
@@ -468,6 +469,21 @@ void SysExit(int status){
 int SysJoin(int pid){
   DEBUG(dbgThread, "\n\tSysJoin received pid: " << pid);
   return kernel->pTab->JoinUpdate(pid);
+}
+
+int SysCreateSem(char* name, int permits){
+  DEBUG(dbgThread, "\n\tSysCreateSem received name: " << name << " with permits " << permits);
+  return kernel->semTab->Create(name, permits);
+}
+
+int SysWait(char* name){
+  DEBUG(dbgThread, "\n\tSysWait received name: " << name);
+  return kernel->semTab->Wait(name);
+}
+
+int SysSignal(char* name){
+  DEBUG(dbgThread, "\n\tSysSignal received name: " << name);
+  return kernel->semTab->Signal(name);
 }
 
 #endif /* ! __USERPROG_KSYSCALL_H__ */

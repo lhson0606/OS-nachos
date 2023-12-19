@@ -245,6 +245,75 @@ void ExceptionHandler(ExceptionType which)
 				break;
 			}
 
+			case SC_CreateSem:
+			{
+				DEBUG(dbgSys, "[SC] SC_CreateSem.\n");
+				int permits;
+				int semID;
+
+				virtAddr = kernel->machine->ReadRegister(4);
+				permits = kernel->machine->ReadRegister(5);
+
+				char* sem_name = NULL;
+				sem_name = User2System(virtAddr, SEM_NAME_MAX_LEN);
+
+				semID = SysCreateSem(sem_name, permits);
+
+				kernel->machine->WriteRegister(2, semID);
+
+				delete[] sem_name;
+				increasePC();
+				return;
+				ASSERTNOTREACHED();
+				break;			
+			}
+
+			case SC_WaitSem:
+			{
+				DEBUG(dbgSys, "[SC] SC_WaitSem.\n");
+				char* sem_name = NULL;
+				int wait_result;
+
+				virtAddr = kernel->machine->ReadRegister(4);
+				sem_name = User2System(virtAddr, SEM_NAME_MAX_LEN);
+
+				wait_result = SysWait(sem_name);
+
+				kernel->machine->WriteRegister(2, wait_result);
+
+				delete[] sem_name;
+				increasePC();
+				return;
+				ASSERTNOTREACHED();
+				break;
+			}
+
+			case SC_SignalSem:
+			{
+				DEBUG(dbgSys, "[SC] SC_SignalSem.\n");
+				char* sem_name = NULL;
+				int signal_result;
+
+				virtAddr = kernel->machine->ReadRegister(4);
+				sem_name = User2System(virtAddr, SEM_NAME_MAX_LEN);
+
+				signal_result = SysSignal(sem_name);
+
+				kernel->machine->WriteRegister(2, signal_result);
+
+				delete[] sem_name;
+				increasePC();
+				return;
+				ASSERTNOTREACHED();
+				break;
+			}
+
+			case SC_ExecV:
+			{
+				//not implemented
+				ASSERTNOTREACHED();
+			}
+
 			case SC_GetArgvs:
 			{
 				DEBUG(dbgSys, "[SC] SC_GetArgvs.\n");
