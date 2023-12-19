@@ -267,8 +267,6 @@ int Wait(char* name);
 
 int Signal(char* name);
 
-SpaceId ExecV(int argc, char* argv[]);
-
 #endif /* IN_ASM */
 
 #endif /* SYSCALL_H */

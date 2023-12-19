@@ -44,6 +44,43 @@ int PTable::ExecUpdate(char* filename)
     return freeSlot;
 }
 
+int PTable::ExecVUpdate(int argc, char* argv[]){
+    int freeSlot = GetFreeSlot();
+    //call after we get the free slot because we will obtain lock in GetFreeSlot()
+    bmsem->P();
+
+    if(freeSlot == -1)
+    {
+        bmsem->V();
+        return -1;
+    }
+    //note that our table is called "pcb" already
+    PCB* aNewPcb = new PCB(freeSlot);
+    aNewPcb->SetArgvs(argc, argv);
+    //add our new pcb to the table
+    pcb[freeSlot] = aNewPcb;
+    //mark the slot is used
+    bm->Mark(freeSlot);
+
+    bmsem->V();
+    //we will release the lock before calling IncNumWait() in parent process
+    int parentID = kernel->currentThread->getId();
+    if(parentID != -1)
+    {
+        PCB* parent = pcb[parentID];
+        parent->IncNumWait();
+    }
+
+    aNewPcb->Exec(argv[0], freeSlot);
+    return freeSlot;
+}
+
+PCB* PTable::GetPcb(int id)
+{
+    if(id == -1 || id > psize-1) return NULL;
+    return pcb[id];
+}
+
 int PTable::ExitUpdate(int exitCode)
 {
     int pid = kernel->currentThread->getId();
@@ -103,7 +140,7 @@ int PTable::GetFreeSlot()
     //we need mutex here, multiple process can call this function at the same time
     bmsem->P();
     //iterate through the table, return the first free slot
-    for(int i = 0; i < psize; i++)
+    for(int i = 1; i < psize; i++)
     {
         if(!bm->Test(i))
         {
@@ -154,4 +191,8 @@ char* PTable::GetFileName(int id)
 {
     if(id == -1) return "main";
     return pcb[id]->GetFileName();
+}
+
+void StartMainThread(char* filename){
+
 }

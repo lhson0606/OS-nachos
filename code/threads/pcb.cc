@@ -30,6 +30,7 @@ PCB::~PCB()
     delete multex;
     delete shouldExit;
     delete[] filename;
+    //#todo delete the userArgs
 }
 
 int PCB::Exec(char* tname,int pid)
@@ -38,7 +39,7 @@ int PCB::Exec(char* tname,int pid)
     filename = new char[length+1];
     strcpy(filename, tname);
     filename[length] = '\0';
-    DEBUG(dbgThread, "\n\t"<<kernel->currentThread->getName() << " execing " << filename << " with pid " << pid << "\n");
+    DEBUG(dbgThread, "\n\t"<<kernel->currentThread->getName() << " executing " << filename << " with pid " << pid << "\n");
     multex->P();
 
     OpenFile *executable = kernel->fileSystem->Open(tname);
@@ -54,6 +55,23 @@ int PCB::Exec(char* tname,int pid)
     
     multex->V();
     return pid;
+}
+
+void PCB::SetArgvs(int argc, char* argv[]){
+    userArgc = argc;
+    for(int i = 0; i < argc; i++){
+        userArgs[i] = argv[i];
+    }
+}
+
+int PCB::GetArgc()
+{
+    return userArgc;
+}
+
+char** PCB::GetArgv()
+{
+    return userArgs;
 }
 
 int PCB::GetID()

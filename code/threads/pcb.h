@@ -14,6 +14,9 @@ public:
     ~PCB(); // Destructor
     // Load the program has the name is “filename” and the process id is pid
     int Exec(char* name,int pid); //Create a thread with the name is filename and the process id is pid
+    void SetArgvs(int argc, char* argv[]); // Set the arguments for the process
+    int GetArgc(); // Return the number of arguments
+    char** GetArgv(); // Return the arguments
     int GetID(); // Return the PID of the current process
     int GetNumWait(); // Return the number of the waiting process
     void JoinWait(); // The parent process wait for the child process finishes
@@ -37,6 +40,8 @@ private:
     int exitcode;
     int numwait; // the number of join process
     char* filename; // the name of the process
+    char *userArgs[MAX_ARG_NUM]; // arguments of the process
+    int userArgc; // number of arguments of the process
 };
 
 #endif // _PCB_H_

@@ -310,8 +310,42 @@ void ExceptionHandler(ExceptionType which)
 
 			case SC_ExecV:
 			{
-				//not implemented
+				DEBUG(dbgSys, "[SC] SC_ExecV.\n");
+				int argc;
+				char** argv;
+				int i = 0;
+				char c;
+				int value;
+				int offset = 0;
+				int exec_result = -1;
+
+				argc = kernel->machine->ReadRegister(4);
+				virtAddr = kernel->machine->ReadRegister(5);
+				
+				argv = new char*[argc];
+
+				for(i = 0; i<argc; i++){
+					int argAddr = 0;
+					kernel->machine->ReadMem(virtAddr+i*4, 4, &argAddr);
+					offset = 0;
+					do{
+						kernel->machine->ReadMem(argAddr + offset, 1, &value);
+						c = (char)value;
+						offset++;
+					}while(c!='\0');
+
+					argv[i] = User2System(argAddr, offset);
+					DEBUG(dbgSys, "\tArgv[" << i << "]: " << argv[i] << "\n");
+				}
+
+				exec_result = SysExecV(argc, argv);
+
+				kernel->machine->WriteRegister(2, exec_result);
+				
+				increasePC();
+				return;
 				ASSERTNOTREACHED();
+				break;
 			}
 
 			case SC_GetArgvs:
@@ -324,13 +358,23 @@ void ExceptionHandler(ExceptionType which)
 				int j = 0;
 				char* temp = NULL;
 				int write_count = 0;
+				char** data = NULL;
 
 				count = kernel->machine->ReadRegister(4);
 				virtAddr = kernel->machine->ReadRegister(5);
 				size = kernel->machine->ReadRegister(6);
 
-				if(count>kernel->userArgc){
-				count = kernel->userArgc;
+				if(kernel->currentThread->getId() == -1){
+					data = kernel->userArgs;
+					if(count>kernel->userArgc){
+						count = kernel->userArgc;
+					}
+				}else{
+					data = kernel->pTab->GetPcb(kernel->currentThread->getId())->GetArgv();
+					int process_argc = kernel->pTab->GetPcb(kernel->currentThread->getId())->GetArgc();
+					if(count>process_argc){
+						count = process_argc;
+					}
 				}
 				
 				temp = new char[size*count];
@@ -338,8 +382,8 @@ void ExceptionHandler(ExceptionType which)
 
 				//write argvs to temp buffer
 				for(i = 0; i<count; i++){
-					for(j = 0; j<strnlen(kernel->userArgs[i], size); j++){
-						temp[i*size + j] = kernel->userArgs[i][j];
+					for(j = 0; j<strnlen(data[i], size); j++){
+						temp[i*size + j] = data[i][j];
 					}
 				}
 

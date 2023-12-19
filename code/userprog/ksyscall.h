@@ -486,4 +486,10 @@ int SysSignal(char* name){
   return kernel->semTab->Signal(name);
 }
 
+int SysExecV(int argc, char* argv[]){
+  ASSERT(argc>0);
+  DEBUG(dbgThread, "\n\tSysExecV received filename: " << argv[0] << " with argc " << argc);
+  return kernel->pTab->ExecVUpdate(argc, argv);
+}
+
 #endif /* ! __USERPROG_KSYSCALL_H__ */

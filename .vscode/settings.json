@@ -15,6 +15,8 @@
         "string_view": "cpp",
         "utility": "cpp",
         "socket.h": "c",
-        "user_utils.h": "c"
+        "user_utils.h": "c",
+        "istream": "cpp",
+        "memory": "cpp"
     },
 }

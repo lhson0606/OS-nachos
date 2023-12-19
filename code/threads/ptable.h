@@ -20,6 +20,9 @@ public:
     bool IsExist(int pid); // Check a process exist or not
     void Remove(int pid); // Delete the PID from the PTable
     char* GetFileName(int id); // Return the process name
+    int ExecVUpdate(int argc, char* argv[]); // Process the syscall SC_ExecV
+    PCB* GetPcb(int id); // Return the PCB of the process
+    void StartMainThread(char* filename); // Start the main thread
 
 private:
     int psize;
