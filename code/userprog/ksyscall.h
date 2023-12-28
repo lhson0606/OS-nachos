@@ -164,6 +164,11 @@ int consoleRead(char *buffer, int size)
   }
 
   DEBUG(dbgFile, "\n\tValue: " << buffer);
+
+  if(i > MAX_ALLOWED_BUFFER_SIZE){
+    exitWithError("String is too large");
+  }
+
   return i;
 }
 
@@ -200,6 +205,10 @@ int SysRead(char *buffer, int size, OpenFileID fd)
     res = file->read(buffer, size);
     DEBUG(dbgFile, "\n\tRead " << res << " characters from fd " << fd);
     DEBUG(dbgFile, "\n\tValue: " << buffer);  
+  }
+
+  if(res > MAX_ALLOWED_BUFFER_SIZE){
+    exitWithError("String is too large");
   }
 
   return res;

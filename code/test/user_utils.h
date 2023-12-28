@@ -10,5 +10,6 @@
 #define RW 1
 #define ConsoleInput 0
 #define ConsoleOutput 1
+#define SpaceId int
 
 #endif // __USER_UTILS_H__
