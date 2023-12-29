@@ -1,11 +1,11 @@
 #ifndef __USER_UTILS_H__
 #define __DY_UTILS_H__
 
-#define MaxStrnLength 64
+#define MaxStrnLength 32
 #define MaxFileNameLength 32
-#define MaxBufferLength 64
+#define MaxBufferLength 32
 #define MaxArgvs 10
-#define MaxArgvLength 64
+#define MaxArgvLength 32
 #define RO 0
 #define RW 1
 #define ConsoleInput 0

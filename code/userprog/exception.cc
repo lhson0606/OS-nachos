@@ -124,6 +124,7 @@ void ExceptionHandler(ExceptionType which)
 	case AddressErrorException:
 		{
 			//#todo: implement this
+			DEBUG(dbgSys, "AddressErrorException from thread: " << kernel->currentThread->getName() << "\n");
 			ASSERTNOTREACHED();
 			break;
 		}
@@ -342,6 +343,7 @@ void ExceptionHandler(ExceptionType which)
 
 				kernel->machine->WriteRegister(2, exec_result);
 				
+				//argv is used by the thread, do not deallocate it here!
 				increasePC();
 				return;
 				ASSERTNOTREACHED();
@@ -863,6 +865,7 @@ int System2User(int virtAddr, int len, char* buffer)
 		oneChar = (int)buffer[i];
 		kernel->machine->WriteMem(virtAddr + i, 1, oneChar);
 		i++;
+		DEBUG(dbgSys, "\tWrite " << (char)oneChar << " to user space\n");
 	} while (i < len && oneChar != 0);
 	return i;
 }

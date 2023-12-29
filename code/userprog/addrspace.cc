@@ -85,7 +85,14 @@ AddrSpace::AddrSpace(OpenFile* executable)//#todo fix this so that it can open e
 
     //we will try to calculate the needed size of the address space
     size = noffH.code.size + noffH.readonlyData.size + noffH.initData.size +
-           noffH.uninitData.size + UserStackSize;	
+           noffH.uninitData.size + UserStackSize;
+
+    DEBUG(dbgAddr, "noffH.code.size: " << noffH.code.size);
+    DEBUG(dbgAddr, "noffH.readonlyData.size: " << noffH.readonlyData.size);
+    DEBUG(dbgAddr, "noffH.initData.size: " << noffH.initData.size);
+    DEBUG(dbgAddr, "noffH.uninitData.size: " << noffH.uninitData.size);
+    DEBUG(dbgAddr, "UserStackSize: " << UserStackSize);
+    DEBUG(dbgAddr, "Total size: " << size);
 
     numPages = divRoundUp(size, PageSize);
     pageTable = new TranslationEntry[numPages];

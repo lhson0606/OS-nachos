@@ -51,5 +51,5 @@ int main(int argc, char **argv){
         Write(buffer,read_result,desfileID);
     }
 
-    Halt();
+    Exit(0);
 }
