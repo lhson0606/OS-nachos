@@ -85,7 +85,7 @@ private:
     int socket_fd;
     char ip_address[32];
     int port;
-    int const MaxMailSize = 1024;
+    int const MaxMailSize = MAX_ALLOWED_BUFFER_SIZE;
 
 };
 

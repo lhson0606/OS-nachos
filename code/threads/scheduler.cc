@@ -57,7 +57,7 @@ void
 Scheduler::ReadyToRun (Thread *thread)
 {
     ASSERT(kernel->interrupt->getLevel() == IntOff);
-    DEBUG(dbgThread, "Putting thread on ready list: " << thread->getName());
+    //DEBUG(dbgThread, "Putting thread on ready list: " << thread->getName());
 
     thread->setStatus(READY);
     readyList->Append(thread);
@@ -123,7 +123,7 @@ Scheduler::Run (Thread *nextThread, bool finishing)
     kernel->currentThread = nextThread;  // switch to the next thread
     nextThread->setStatus(RUNNING);      // nextThread is now running
     
-    DEBUG(dbgThread, "Switching from: " << oldThread->getName() << " to: " << nextThread->getName());
+    //DEBUG(dbgThread, "Switching from: " << oldThread->getName() << " to: " << nextThread->getName());
     
     // This is a machine-dependent assembly language routine defined 
     // in switch.s.  You may have to think
@@ -137,7 +137,7 @@ Scheduler::Run (Thread *nextThread, bool finishing)
     // interrupts are off when we return from switch!
     ASSERT(kernel->interrupt->getLevel() == IntOff);
 
-    DEBUG(dbgThread, "Now in thread: " << oldThread->getName());
+    //DEBUG(dbgThread, "Now in thread: " << oldThread->getName());
 
     CheckToBeDestroyed();		// check if thread we were running
 					// before this one has finished

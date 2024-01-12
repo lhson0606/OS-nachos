@@ -16,6 +16,8 @@
 #include "serversocket.h"
 #include "openfile.h"
 #include "fdt.h"
+#include "ptable.h"
+#include "stable.h"
 
 /**
  * Systemcall interface
@@ -31,13 +33,13 @@ void SysHalt()
  * @param string The null-terminated string to print
  * @see ConsoleDriver::PutString
  */
-void SysPrintString(char *string)
+int SysPrintString(char *string)
 {
-  while(*string != '\0'){
-    kernel->synchConsoleOut->PutChar(*string);
-    string++;
-  }
+  int size = strnlen(string, MAX_ALLOWED_BUFFER_SIZE);
+
+  kernel->synchConsoleOut->PutString(string, size);
   // kernel->GetConsole()->PutString(string);
+  return size;
 }
 
 void exitWithError(char* msg){
@@ -162,6 +164,11 @@ int consoleRead(char *buffer, int size)
   }
 
   DEBUG(dbgFile, "\n\tValue: " << buffer);
+
+  if(i > MAX_ALLOWED_BUFFER_SIZE){
+    exitWithError("String is too large");
+  }
+
   return i;
 }
 
@@ -198,6 +205,10 @@ int SysRead(char *buffer, int size, OpenFileID fd)
     res = file->read(buffer, size);
     DEBUG(dbgFile, "\n\tRead " << res << " characters from fd " << fd);
     DEBUG(dbgFile, "\n\tValue: " << buffer);  
+  }
+
+  if(res > MAX_ALLOWED_BUFFER_SIZE){
+    exitWithError("String is too large");
   }
 
   return res;
@@ -452,6 +463,42 @@ int SysSSPollAccept(int ss_fd){
 
   //int res = serverSocket->pollAccept();
   return 0;
+}
+
+int SysExec(char* filename){
+  DEBUG(dbgThread, "\n\tSysExec received filename: " << filename);
+  return kernel->pTab->ExecUpdate(filename);
+}
+
+void SysExit(int status){
+  DEBUG(dbgThread, "\n\tSysExit received status: " << status);
+  kernel->pTab->ExitUpdate(status);
+}
+
+int SysJoin(int pid){
+  DEBUG(dbgThread, "\n\tSysJoin received pid: " << pid);
+  return kernel->pTab->JoinUpdate(pid);
+}
+
+int SysCreateSem(char* name, int permits){
+  DEBUG(dbgThread, "\n\tSysCreateSem received name: " << name << " with permits " << permits);
+  return kernel->semTab->Create(name, permits);
+}
+
+int SysWait(char* name){
+  DEBUG(dbgThread, "\n\tSysWait received name: " << name);
+  return kernel->semTab->Wait(name);
+}
+
+int SysSignal(char* name){
+  DEBUG(dbgThread, "\n\tSysSignal received name: " << name);
+  return kernel->semTab->Signal(name);
+}
+
+int SysExecV(int argc, char* argv[]){
+  ASSERT(argc>0);
+  DEBUG(dbgThread, "\n\tSysExecV received filename: " << argv[0] << " with argc " << argc);
+  return kernel->pTab->ExecVUpdate(argc, argv);
 }
 
 #endif /* ! __USERPROG_KSYSCALL_H__ */

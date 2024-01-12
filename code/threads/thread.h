@@ -81,8 +81,9 @@ class Thread {
     int *stackTop;			 // the current stack pointer
     void *machineState[MachineStateSize];  // all registers except for stackTop
 
-  public:
+  public:	// initialize a Thread
     Thread(char* debugName);		// initialize a Thread 
+    Thread(char* debugName, int id);	
     ~Thread(); 				// deallocate a Thread
 					// NOTE -- thread being deleted
 					// must not be running when delete 
@@ -104,8 +105,10 @@ class Thread {
     char* getName() { return (name); }
     void Print() { cout << name; }
     void SelfTest();		// test whether thread impl is working
-
+    int getId();
+    void setId(int id);
   private:
+    int id = -1;
     // some of the private data for this class is listed above
     
     int *stack; 	 	// Bottom of the stack 
