@@ -104,49 +104,55 @@ void ExceptionHandler(ExceptionType which)
 	case PageFaultException:
 		{
 			//#todo: implement this
-			ASSERTNOTREACHED();
+            DEBUG(dbgSys, "PageFaultException from thread: " << kernel->currentThread->getName() << "\n");
+            exitWithError("[PageFaultException]");
 			break;
 		}		
 	case ReadOnlyException:
 		{
 			//#todo: implement this
-			ASSERTNOTREACHED();
+            DEBUG(dbgSys, "ReadOnlyException from thread: " << kernel->currentThread->getName() << "\n");
+            exitWithError("[ReadOnlyException]");
 			break;
 		}
 
 	case BusErrorException:
 		{
 			//#todo: implement this
-			ASSERTNOTREACHED();
+            DEBUG(dbgSys, "BusErrorException from thread: " << kernel->currentThread->getName() << "\n");
+            exitWithError("[BusErrorException]");
 			break;
 		}
 
 	case AddressErrorException:
 		{
 			//#todo: implement this
-			DEBUG(dbgSys, "AddressErrorException from thread: " << kernel->currentThread->getName() << "\n");
-			ASSERTNOTREACHED();
+            DEBUG(dbgSys, "AddressErrorException from thread: " << kernel->currentThread->getName() << "\n");
+            exitWithError("[AddressErrorException]");
 			break;
 		}
 
 	case OverflowException:
 		{
 			//#todo: implement this
-			ASSERTNOTREACHED();
+            DEBUG(dbgSys, "OverflowException from thread: " << kernel->currentThread->getName() << "\n");
+            exitWithError("[OverflowException]");
 			break;
 		}
 
 	case IllegalInstrException:
 		{
 			//#todo: implement this
-			ASSERTNOTREACHED();
+            DEBUG(dbgSys, "IllegalInstrException from thread: " << kernel->currentThread->getName() << "\n");
+            exitWithError("[IllegalInstrException]");
 			break;
 		}
 
 	case NumExceptionTypes:
 		{
 			//#todo: implement this
-			ASSERTNOTREACHED();
+            DEBUG(dbgSys, "NumExceptionTypes from thread: " << kernel->currentThread->getName() << "\n");
+            exitWithError("[NumExceptionTypes]");
 			break;
 		}
 
@@ -191,6 +197,7 @@ void ExceptionHandler(ExceptionType which)
 				ASSERTNOTREACHED();
 				break;
 			}
+//          System call for Multiprogramming
 
 			case SC_Exec:
 			{
@@ -213,6 +220,24 @@ void ExceptionHandler(ExceptionType which)
 				break;
 			}
 
+            case SC_Join:
+            {
+                DEBUG(dbgSys, "[SC] SC_Join.\n");
+                int join_thread_id;
+                int join_result;
+
+                join_thread_id = kernel->machine->ReadRegister(4);
+
+                join_result = SysJoin(join_thread_id);
+
+                kernel->machine->WriteRegister(2, join_result);
+
+                increasePC();
+                return;
+                ASSERTNOTREACHED();
+                break;
+            }
+
 			case SC_Exit:
 			{
 				DEBUG(dbgSys, "[SC] SC_Exit.\n");
@@ -221,24 +246,6 @@ void ExceptionHandler(ExceptionType which)
 				exit_status = kernel->machine->ReadRegister(4);
 
 				SysExit(exit_status);
-
-				increasePC();
-				return;
-				ASSERTNOTREACHED();
-				break;
-			}
-
-			case SC_Join:
-			{
-				DEBUG(dbgSys, "[SC] SC_Join.\n");
-				int join_thread_id;
-				int join_result;
-
-				join_thread_id = kernel->machine->ReadRegister(4);
-
-				join_result = SysJoin(join_thread_id);
-
-				kernel->machine->WriteRegister(2, join_result);
 
 				increasePC();
 				return;
@@ -266,7 +273,7 @@ void ExceptionHandler(ExceptionType which)
 				increasePC();
 				return;
 				ASSERTNOTREACHED();
-				break;			
+				break;
 			}
 
 			case SC_WaitSem:
@@ -308,6 +315,7 @@ void ExceptionHandler(ExceptionType which)
 				ASSERTNOTREACHED();
 				break;
 			}
+
 
 			case SC_ExecV:
 			{
