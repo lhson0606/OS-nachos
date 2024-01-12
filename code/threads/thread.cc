@@ -35,7 +35,29 @@ const int STACK_FENCEPOST = 0xdedbeef;
 
 Thread::Thread(char* threadName)
 {
-    name = threadName;
+    int nameLength = strlen(threadName) + 1;
+    ASSERT(nameLength <= 32 && nameLength > 0);
+    name = new char[nameLength];
+    strncpy(name,threadName,nameLength);
+    id = -1;
+    stackTop = NULL;
+    stack = NULL;
+    status = JUST_CREATED;
+    for (int i = 0; i < MachineStateSize; i++) {
+	machineState[i] = NULL;		// not strictly necessary, since
+					// new thread ignores contents 
+					// of machine registers
+    }
+    space = NULL;
+}
+
+Thread::Thread(char* debugName, int id)
+{
+    int nameLength = strlen(debugName) + 1;
+    ASSERT(nameLength <= 32 && nameLength > 0);
+    name = new char[nameLength];
+    this->id = id;
+    strncpy(name,debugName,nameLength);
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
@@ -61,11 +83,13 @@ Thread::Thread(char* threadName)
 
 Thread::~Thread()
 {
-    DEBUG(dbgThread, "Deleting thread: " << name);
-
+    DEBUG(dbgThread, "Deleting addspacce of thread: " << name);
+    delete space;
     ASSERT(this != kernel->currentThread);
     if (stack != NULL)
 	DeallocBoundedArray((char *) stack, StackSize * sizeof(int));
+    //fixed: our name is always allocated by us
+    delete [] name;
 }
 
 //----------------------------------------------------------------------
@@ -206,7 +230,7 @@ Thread::Yield ()
     
     ASSERT(this == kernel->currentThread);
     
-    DEBUG(dbgThread, "Yielding thread: " << name);
+    //DEBUG(dbgThread, "Yielding thread: " << name);
     
     nextThread = kernel->scheduler->FindNextToRun();
     if (nextThread != NULL) {
@@ -244,7 +268,7 @@ Thread::Sleep (bool finishing)
     ASSERT(this == kernel->currentThread);
     ASSERT(kernel->interrupt->getLevel() == IntOff);
     
-    DEBUG(dbgThread, "Sleeping thread: " << name);
+    //DEBUG(dbgThread, "Sleeping thread: " << name);
 
     status = BLOCKED;
     while ((nextThread = kernel->scheduler->FindNextToRun()) == NULL)
@@ -434,3 +458,12 @@ Thread::SelfTest()
     SimpleThread(0);
 }
 
+int
+Thread::getId() { 
+    return id; 
+}
+
+void
+Thread::setId(int id) { 
+    this->id = id; 
+}

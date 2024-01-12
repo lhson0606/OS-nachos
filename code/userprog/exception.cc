@@ -58,9 +58,7 @@
 +======================================================================+
 */
 // Start of constants =================================================
-const int MAX_INT = 2147483647;
-const int STRING_MAX_LEN = MAX_INT;
-const int MAX_STRING_LEN = 255;
+const int MAX_STRING_LEN = 64;
 const int FILE_NAME_MAX_LEN = 32;
 // End of constants ====================================================
 /**
@@ -99,9 +97,65 @@ void ExceptionHandler(ExceptionType which)
 	int virtAddr;
 
 	DEBUG(dbgSys, "Received Exception " << which << " type: " << type << "\n");
+	
 
-	switch (which)
+	switch (which)//see machine.h for exception type
 	{
+	case PageFaultException:
+		{
+			//#todo: implement this
+            DEBUG(dbgSys, "PageFaultException from thread: " << kernel->currentThread->getName() << "\n");
+            exitWithError("[PageFaultException]");
+			break;
+		}		
+	case ReadOnlyException:
+		{
+			//#todo: implement this
+            DEBUG(dbgSys, "ReadOnlyException from thread: " << kernel->currentThread->getName() << "\n");
+            exitWithError("[ReadOnlyException]");
+			break;
+		}
+
+	case BusErrorException:
+		{
+			//#todo: implement this
+            DEBUG(dbgSys, "BusErrorException from thread: " << kernel->currentThread->getName() << "\n");
+            exitWithError("[BusErrorException]");
+			break;
+		}
+
+	case AddressErrorException:
+		{
+			//#todo: implement this
+            DEBUG(dbgSys, "AddressErrorException from thread: " << kernel->currentThread->getName() << "\n");
+            exitWithError("[AddressErrorException]");
+			break;
+		}
+
+	case OverflowException:
+		{
+			//#todo: implement this
+            DEBUG(dbgSys, "OverflowException from thread: " << kernel->currentThread->getName() << "\n");
+            exitWithError("[OverflowException]");
+			break;
+		}
+
+	case IllegalInstrException:
+		{
+			//#todo: implement this
+            DEBUG(dbgSys, "IllegalInstrException from thread: " << kernel->currentThread->getName() << "\n");
+            exitWithError("[IllegalInstrException]");
+			break;
+		}
+
+	case NumExceptionTypes:
+		{
+			//#todo: implement this
+            DEBUG(dbgSys, "NumExceptionTypes from thread: " << kernel->currentThread->getName() << "\n");
+            exitWithError("[NumExceptionTypes]");
+			break;
+		}
+
 	case SyscallException:
 		switch (type)
 		{
@@ -143,6 +197,167 @@ void ExceptionHandler(ExceptionType which)
 				ASSERTNOTREACHED();
 				break;
 			}
+//          System call for Multiprogramming
+
+			case SC_Exec:
+			{
+				DEBUG(dbgSys, "[SC] SC_Exec.\n");
+				char* exec_name;
+				int exec_result = -1;
+
+				virtAddr = kernel->machine->ReadRegister(4);
+				exec_name = User2System(virtAddr, FILE_NAME_MAX_LEN);
+
+				exec_result = SysExec(exec_name);
+
+				kernel->machine->WriteRegister(2, exec_result);
+
+				//the thread will use exec_name, do not delete it here?
+				delete[] exec_name;
+				increasePC();
+				return;
+				ASSERTNOTREACHED();
+				break;
+			}
+
+            case SC_Join:
+            {
+                DEBUG(dbgSys, "[SC] SC_Join.\n");
+                int join_thread_id;
+                int join_result;
+
+                join_thread_id = kernel->machine->ReadRegister(4);
+
+                join_result = SysJoin(join_thread_id);
+
+                kernel->machine->WriteRegister(2, join_result);
+
+                increasePC();
+                return;
+                ASSERTNOTREACHED();
+                break;
+            }
+
+			case SC_Exit:
+			{
+				DEBUG(dbgSys, "[SC] SC_Exit.\n");
+				int exit_status;
+
+				exit_status = kernel->machine->ReadRegister(4);
+
+				SysExit(exit_status);
+
+				increasePC();
+				return;
+				ASSERTNOTREACHED();
+				break;
+			}
+
+			case SC_CreateSem:
+			{
+				DEBUG(dbgSys, "[SC] SC_CreateSem.\n");
+				int permits;
+				int semID;
+
+				virtAddr = kernel->machine->ReadRegister(4);
+				permits = kernel->machine->ReadRegister(5);
+
+				char* sem_name = NULL;
+				sem_name = User2System(virtAddr, SEM_NAME_MAX_LEN);
+
+				semID = SysCreateSem(sem_name, permits);
+
+				kernel->machine->WriteRegister(2, semID);
+
+				delete[] sem_name;
+				increasePC();
+				return;
+				ASSERTNOTREACHED();
+				break;
+			}
+
+			case SC_WaitSem:
+			{
+				DEBUG(dbgSys, "[SC] SC_WaitSem.\n");
+				char* sem_name = NULL;
+				int wait_result;
+
+				virtAddr = kernel->machine->ReadRegister(4);
+				sem_name = User2System(virtAddr, SEM_NAME_MAX_LEN);
+
+				wait_result = SysWait(sem_name);
+
+				kernel->machine->WriteRegister(2, wait_result);
+
+				delete[] sem_name;
+				increasePC();
+				return;
+				ASSERTNOTREACHED();
+				break;
+			}
+
+			case SC_SignalSem:
+			{
+				DEBUG(dbgSys, "[SC] SC_SignalSem.\n");
+				char* sem_name = NULL;
+				int signal_result;
+
+				virtAddr = kernel->machine->ReadRegister(4);
+				sem_name = User2System(virtAddr, SEM_NAME_MAX_LEN);
+
+				signal_result = SysSignal(sem_name);
+
+				kernel->machine->WriteRegister(2, signal_result);
+
+				delete[] sem_name;
+				increasePC();
+				return;
+				ASSERTNOTREACHED();
+				break;
+			}
+
+
+			case SC_ExecV:
+			{
+				DEBUG(dbgSys, "[SC] SC_ExecV.\n");
+				int argc;
+				char** argv;
+				int i = 0;
+				char c;
+				int value;
+				int offset = 0;
+				int exec_result = -1;
+
+				argc = kernel->machine->ReadRegister(4);
+				virtAddr = kernel->machine->ReadRegister(5);
+				
+				argv = new char*[argc];
+
+				for(i = 0; i<argc; i++){
+					int argAddr = 0;
+					kernel->machine->ReadMem(virtAddr+i*4, 4, &argAddr);
+					offset = 0;
+					do{
+						kernel->machine->ReadMem(argAddr + offset, 1, &value);
+						c = (char)value;
+						offset++;
+					}while(c!='\0');
+
+					argv[i] = User2System(argAddr, offset);
+					DEBUG(dbgSys, "\tArgv[" << i << "]: " << argv[i] << "\n");
+				}
+
+				exec_result = SysExecV(argc, argv);
+
+				kernel->machine->WriteRegister(2, exec_result);
+				
+				//argv is used by the thread, do not deallocate it here!
+				increasePC();
+				return;
+				ASSERTNOTREACHED();
+				break;
+			}
+
 			case SC_GetArgvs:
 			{
 				DEBUG(dbgSys, "[SC] SC_GetArgvs.\n");
@@ -153,23 +368,30 @@ void ExceptionHandler(ExceptionType which)
 				int j = 0;
 				char* temp = NULL;
 				int write_count = 0;
+				char** data = NULL;
+				int result = 0;
 
 				count = kernel->machine->ReadRegister(4);
 				virtAddr = kernel->machine->ReadRegister(5);
 				size = kernel->machine->ReadRegister(6);
 
-				if(count>kernel->userArgc){
-				count = kernel->userArgc;
-				}
+				ASSERT(count>0);
+				ASSERT(kernel->currentThread->getId()>-1);
+
+				data = kernel->pTab->GetPcb(kernel->currentThread->getId())->GetArgv();
+				int process_argc = kernel->pTab->GetPcb(kernel->currentThread->getId())->GetArgc();
+				DEBUG(dbgSys, "\tProcess argc: " << process_argc << "\n");
 				
 				temp = new char[size*count];
 				memset(temp, 0, size);
-
+				//first argvs is the file name, user argvs start from index 1
 				//write argvs to temp buffer
-				for(i = 0; i<count; i++){
-					for(j = 0; j<strnlen(kernel->userArgs[i], size); j++){
-						temp[i*size + j] = kernel->userArgs[i][j];
+				for(i = 1; i<process_argc && result != count; i++){
+					for(j = 0; j<strnlen(data[i], size); j++){
+						temp[(i-1)*size + j] = data[i][j];//i-1 instead of i because we skip the first argv
 					}
+					result++;
+					DEBUG(dbgSys, "\tArgv[" << i << "]: " << data[i] << "\n");
 				}
 
 				//write temp buffer to user space
@@ -179,7 +401,8 @@ void ExceptionHandler(ExceptionType which)
 					write_count++;
 				} while (write_count < size*count);
 
-				kernel->machine->WriteRegister(2, count);
+				DEBUG(dbgSys, "\tResult argc: " << result << "\n");
+				kernel->machine->WriteRegister(2, result);
 
 				delete[] temp;
 				increasePC();
@@ -534,7 +757,7 @@ void ExceptionHandler(ExceptionType which)
 				char* strn;
 
 				virtAddr = kernel->machine->ReadRegister(4);
-				strn = User2System(virtAddr, STRING_MAX_LEN);
+				strn = User2System(virtAddr, MAX_STRING_LEN);
                 DEBUG(dbgSys, "\tValue:"<<strn);
 				//extra check
 				if(!strn){
@@ -544,16 +767,11 @@ void ExceptionHandler(ExceptionType which)
 				}
 
 				int count;
-				count = 0;
-
-				while(strn[count] != '\0' && count<STRING_MAX_LEN){
-					SysPrintChar(strn[count]);
-					count++;
-				}
+				count = SysPrintString(strn);
 				
 				DEBUG(dbgSys, "\tString: " << strn << "\n");
 				int strn_len;
-				strn_len = strnlen(strn, STRING_MAX_LEN);
+				strn_len = strnlen(strn, MAX_STRING_LEN);
 				DEBUG(dbgSys, "\tString length: " << strn_len << "\n");
 				DEBUG(dbgSys, "\tPrinted: " << count << " character(s)\n");
 				kernel->machine->WriteRegister(2, count);
@@ -655,6 +873,7 @@ int System2User(int virtAddr, int len, char* buffer)
 		oneChar = (int)buffer[i];
 		kernel->machine->WriteMem(virtAddr + i, 1, oneChar);
 		i++;
+		DEBUG(dbgSys, "\tWrite " << (char)oneChar << " to user space\n");
 	} while (i < len && oneChar != 0);
 	return i;
 }

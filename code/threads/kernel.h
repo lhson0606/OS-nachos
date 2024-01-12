@@ -30,6 +30,10 @@ class PostOfficeOutput;
 class SynchConsoleInput;
 class SynchConsoleOutput;
 class SynchDisk;
+class Semaphore;
+class STable;
+class Bitmap;
+class PTable;
 
 class Kernel
 {
@@ -63,6 +67,10 @@ public:
   FileSystem *fileSystem;
   PostOfficeInput *postOfficeIn;
   PostOfficeOutput *postOfficeOut;
+  Semaphore *addrLock;
+  Bitmap *gPhysPageBitMap;
+  STable *semTab;
+  PTable *pTab;
 
   int hostName; // machine identifier
   

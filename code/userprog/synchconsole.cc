@@ -106,6 +106,19 @@ SynchConsoleOutput::PutChar(char ch)
     lock->Release();
 }
 
+void
+SynchConsoleOutput::PutString(char *s, int size)
+{
+    lock->Acquire();
+
+    for(int i = 0; i < size; i++){
+        consoleOutput->PutChar(s[i]);
+        waitFor->P();
+    }
+
+    lock->Release();
+}
+
 //----------------------------------------------------------------------
 // SynchConsoleOutput::CallBack
 //      Interrupt handler called when it's safe to send the next 

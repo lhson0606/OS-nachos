@@ -45,6 +45,7 @@
 #include "filesys.h"
 #include "openfile.h"
 #include "sysdep.h"
+#include "ptable.h"
 
 // global variables
 Kernel *kernel;
@@ -278,19 +279,14 @@ main(int argc, char **argv)
     if (dirListFlag) {
       kernel->fileSystem->List();
     }
-    if (printFileName != NULL) {
+if (printFileName != NULL) {
       Print(printFileName);
     }
 #endif // FILESYS_STUB
 
     // finally, run an initial user program if requested to do so
     if (userProgName != NULL) {
-      AddrSpace *space = new AddrSpace;
-      ASSERT(space != (AddrSpace *)NULL);
-      if (space->Load(userProgName)) {  // load the program into the space
-	space->Execute();              // run the program
-	ASSERTNOTREACHED();            // Execute never returns
-      }
+        kernel->pTab->StartMainThread(userProgName);
     }
 
     // If we don't run a user program, we may get here.

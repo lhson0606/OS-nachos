@@ -32,7 +32,7 @@ int main(int argc, char **argv){
     fd_a = Open(argvs[0], RW);
 
     if (fd_a == -1){
-        PrintStrn("Can not open file a.txt\n");
+        PrintStrn("Can not open file a1.txt\n");
         Halt();
     }
 

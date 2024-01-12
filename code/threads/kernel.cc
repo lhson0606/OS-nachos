@@ -17,6 +17,8 @@
 #include "synchconsole.h"
 #include "synchdisk.h"
 #include "post.h"
+#include "stable.h"
+#include "ptable.h"
 
 //----------------------------------------------------------------------
 // Kernel::Kernel
@@ -124,6 +126,10 @@ Kernel::Initialize()
 #endif // FILESYS_STUB
     postOfficeIn = new PostOfficeInput(10);
     postOfficeOut = new PostOfficeOutput(reliability);
+    addrLock = new Semaphore("addrLock", 1);
+    gPhysPageBitMap = new Bitmap(NumPhysPages);
+    semTab = new STable();
+    pTab = new PTable(MAX_PROCESS);
 
     interrupt->Enable();
 }
@@ -146,6 +152,10 @@ Kernel::~Kernel()
     delete fileSystem;
     delete postOfficeIn;
     delete postOfficeOut;
+    delete addrLock;
+    delete gPhysPageBitMap;
+    delete semTab;
+    delete pTab;
     
     Exit(0);
 }

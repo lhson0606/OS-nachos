@@ -15,7 +15,8 @@ int main() {
         PrintStrn(argvs[i]);
     }
 
-    Halt();
+    PrintStrn("From test: I'm dead :P\n");
+    Exit(0);
 }
 
 
